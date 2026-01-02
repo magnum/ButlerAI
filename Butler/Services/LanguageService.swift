@@ -3,10 +3,10 @@ import NaturalLanguage
 import SwiftUI
 
 class LanguageService: ObservableObject {
-    private let openAIService: OpenAIService
+    private let textImprover: TextImproving
     
-    init(openAIService: OpenAIService) {
-        self.openAIService = openAIService
+    init(textImprover: TextImproving) {
+        self.textImprover = textImprover
     }
     
     func detectLanguage(text: String) -> String? {
@@ -24,7 +24,7 @@ class LanguageService: ObservableObject {
         \(italianText)
         """
         
-        return try await openAIService.improveText(prompt)
+        return try await textImprover.improveText(prompt)
     }
     
     func improveWithLanguageHandling(_ text: String) async throws -> String {
@@ -34,7 +34,7 @@ class LanguageService: ObservableObject {
             return try await translateAndImprove(italianText: text)
         } else {
             // Use existing improvement directly
-            return try await openAIService.improveText(text)
+            return try await textImprover.improveText(text)
         }
     }
 }

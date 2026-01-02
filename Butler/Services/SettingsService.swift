@@ -2,7 +2,13 @@ import SwiftUI
 import Combine
 
 class SettingsService: ObservableObject {
-    @AppStorage("openaiKey") var openaiKey: String = ""
+    @Published var openaiKey: String = "" {
+        didSet {
+            if isLoadingOpenAIKey { return }
+            persistOpenAIKey(openaiKey)
+        }
+    }
+    @AppStorage("openaiBaseURL") var openAIBaseURL: String = "https://api.openai.com/v1"
     @AppStorage("aiBackend") var aiBackend: AIBackendType = .openAI
     @AppStorage("ollamaURL") var ollamaURL: String = "http://localhost:11434"
     @AppStorage("selectedModel") var selectedModel: String = AIModelConstants.defaultOpenAIModel
@@ -21,8 +27,44 @@ class SettingsService: ObservableObject {
     Return only the improved text without any explanations or additional comments.
     """
 
+    private let keychain = KeychainService()
+    private let openAIKeyKeychainKey = "openaiKey"
+    private var isLoadingOpenAIKey = false
+
     init() {
-        // Future initial setup for settings can go here
-        LoggerService.shared.log("SettingsService initialized")
+        loadOpenAIKey()
+        log("SettingsService initialized")
+    }
+
+    private func loadOpenAIKey() {
+        isLoadingOpenAIKey = true
+        defer { isLoadingOpenAIKey = false }
+
+        let legacyKey = UserDefaults.standard.string(forKey: openAIKeyKeychainKey) ?? ""
+        if !legacyKey.isEmpty {
+            openaiKey = legacyKey
+            UserDefaults.standard.removeObject(forKey: openAIKeyKeychainKey)
+            persistOpenAIKey(legacyKey)
+            return
+        }
+
+        do {
+            openaiKey = try keychain.get(openAIKeyKeychainKey) ?? ""
+        } catch {
+            log("Failed to load OpenAI API key from Keychain: \(error.localizedDescription)", type: .error)
+            openaiKey = ""
+        }
+    }
+
+    private func persistOpenAIKey(_ value: String) {
+        do {
+            if value.isEmpty {
+                try keychain.delete(openAIKeyKeychainKey)
+            } else {
+                try keychain.set(value, for: openAIKeyKeychainKey)
+            }
+        } catch {
+            log("Failed to persist OpenAI API key to Keychain: \(error.localizedDescription)", type: .error)
+        }
     }
 }

@@ -10,11 +10,15 @@ class HotkeyManager {
     
     init(callback: @escaping () -> Void) {
         self.callback = callback
-        setupAccessibilityCheck()
+        if RuntimeEnvironment.isRunningTests {
+            log("Skipping accessibility check during tests")
+        } else {
+            setupAccessibilityCheck()
+        }
     }
     
     deinit {
-        LoggerService.shared.log("Cleaning up HotkeyManager")
+        log("Cleaning up HotkeyManager")
         if let handler = eventHandler {
             RemoveEventHandler(handler)
         }
@@ -25,17 +29,17 @@ class HotkeyManager {
     }
     
     private func setupAccessibilityCheck() {
-        LoggerService.shared.log("Setting up accessibility check")
+        log("Setting up accessibility check")
         
         // Initial check
         checkAccessibilityPermissions()
         
         // Periodic check if not granted
         if !AXIsProcessTrusted() {
-            LoggerService.shared.log("Starting permission check timer")
+            log("Starting permission check timer")
             permissionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
                 if AXIsProcessTrusted() {
-                    LoggerService.shared.log("Accessibility permission detected")
+                    log("Accessibility permission detected")
                     timer.invalidate()
                     self?.onAccessibilityGranted()
                 }
@@ -44,13 +48,13 @@ class HotkeyManager {
     }
     
     private func onAccessibilityGranted() {
-        LoggerService.shared.log("Accessibility permission granted")
+        log("Accessibility permission granted")
         registerHotkey()
     }
     
     private func checkAccessibilityPermissions() {
         if !AXIsProcessTrusted() {
-            LoggerService.shared.log("Warning: App is not trusted for accessibility", type: .warning)
+            log("Warning: App is not trusted for accessibility", type: .warning)
             let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
             AXIsProcessTrustedWithOptions(options)
             
@@ -76,24 +80,24 @@ class HotkeyManager {
                 }
             }
         } else {
-            LoggerService.shared.log("App is trusted for accessibility")
+            log("App is trusted for accessibility")
             registerHotkey()
         }
     }
     
     private func registerHotkey() {
-        LoggerService.shared.log("Registering global hotkey ⌃⌥⌘C")
+        log("Registering global hotkey ⌃⌥⌘C")
         
         // Set up monitoring of global keyboard events
         monitorEvent = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else {
-                LoggerService.shared.log("Warning: Self is nil in hotkey handler", type: .warning)
+                log("Warning: Self is nil in hotkey handler", type: .warning)
                 return
             }
             
             if event.modifierFlags.contains([.control, .option, .command]) &&
                event.keyCode == 0x08 { // 'c' key
-                LoggerService.shared.log("Global keyboard shortcut ⌃⌥⌘C detected")
+                log("Global keyboard shortcut ⌃⌥⌘C detected")
                 DispatchQueue.main.async {
                     self.callback()
                 }
@@ -101,9 +105,9 @@ class HotkeyManager {
         }
         
         if monitorEvent == nil {
-            LoggerService.shared.log("Error: Failed to register global monitor", type: .error)
+            log("Error: Failed to register global monitor", type: .error)
         } else {
-            LoggerService.shared.log("Global keyboard monitor registered successfully")
+            log("Global keyboard monitor registered successfully")
         }
     }
 }

@@ -5,13 +5,32 @@
 //  Created by Scalzo, Giordano on 04/03/2025.
 //
 
-import Testing
+import XCTest
 @testable import Butler
+#if canImport(AppIntents)
+import AppIntents
+#endif
 
-struct ButlerTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+final class ButlerTests: XCTestCase {
+    func testDetectLanguageItalian() {
+        let service = LanguageService(textImprover: OpenAIClient(
+            apiKey: "test-key",
+            prompt: "test-prompt",
+            model: AIModelConstants.defaultOpenAIModel,
+            serverURL: ""
+        ))
+        let detected = service.detectLanguage(text: "Questo è un test.")
+        XCTAssertEqual(detected, "it")
     }
 
+    func testDetectLanguageNonItalianReturnsNil() {
+        let service = LanguageService(textImprover: OpenAIClient(
+            apiKey: "test-key",
+            prompt: "test-prompt",
+            model: AIModelConstants.defaultOpenAIModel,
+            serverURL: ""
+        ))
+        let detected = service.detectLanguage(text: "This is a test.")
+        XCTAssertNil(detected)
+    }
 }

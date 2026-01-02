@@ -16,7 +16,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: settings.aiBackend) { newValue in
+                    .onChange(of: settings.aiBackend) { _, newValue in
                         if newValue == .ollama {
                             Task {
                                 await fetchOllamaModels()
@@ -32,6 +32,11 @@ struct SettingsView: View {
                             Text("OpenAI API Key")
                                 .font(.headline)
                             SecureField("Enter your API key", text: $settings.openaiKey)
+                                .textFieldStyle(.roundedBorder)
+
+                            Text("OpenAI Base URL")
+                                .font(.headline)
+                            TextField("https://api.openai.com/v1", text: $settings.openAIBaseURL)
                                 .textFieldStyle(.roundedBorder)
                         }
                     } else {
@@ -107,7 +112,7 @@ struct SettingsView: View {
         errorMessage = ""
         
         do {
-            availableModels = try await OpenAIService.fetchOllamaModels(serverURL: settings.ollamaURL)
+            availableModels = try await OllamaClient.fetchModels(serverURL: settings.ollamaURL)
             if !availableModels.isEmpty && !availableModels.contains(settings.selectedModel) {
                 settings.selectedModel = availableModels[0]
             }

@@ -23,29 +23,54 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXBuildFile section */
+		F4A08CB34FC74497A7484C5C /* AppIntentsSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C056324FF845BCB4911848 /* AppIntentsSupport.swift */; };
+		71F14E4D28ED4237B794BBB8 /* ButlerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0838B3203E07418FAD154B8A /* ButlerApp.swift */; };
+		0665D2B61E3A451881F3F6C1 /* AIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3333FAF6FA4C95A4951839 /* AIConfiguration.swift */; };
+		8D12B7D2128B4365B5511AE9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4874FE17C6F44CD79BFE500E /* SettingsView.swift */; };
+		973323F919464F0C9119FA2A /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB9C0231379482E9C9C4C3F /* LogView.swift */; };
+		0B262CC6AC5849DA8C2C5040 /* OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC97D196DA7C455FB148A2FB /* OllamaClient.swift */; };
+		4B8E975043374BAC9A1AD97C /* TextImproving.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D7BD73EDD44491926347EB /* TextImproving.swift */; };
+		E05FD592CAAE4AC4A87C078B /* LoggerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F62491C8348E45258CC728DC /* LoggerService.swift */; };
+		FFDD4EA6CD0946F080CFBAA9 /* RuntimeEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA701ED43CBB4146B747C754 /* RuntimeEnvironment.swift */; };
+		8198D8E8372B4A3BA18C1E0B /* LanguageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5ED5240BD7648A1993E70EE /* LanguageService.swift */; };
+		C3DDCCBBB4D24A67A550B89E /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB67BD41EE6446089DA8B13D /* OpenAIService.swift */; };
+		EF0156EA2E1440AA91041626 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87832E66C764613A32F5D03 /* HotkeyManager.swift */; };
+		D0050513ACEE4C6A98CCC32D /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6A6698BA1546C8882CD7E1 /* KeychainService.swift */; };
+		C88F6763EBCE4FB7B62A8278 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EC5B4E34D2482497F8263C /* ClipboardManager.swift */; };
+		E2CCE268D1414C97B29B5D21 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B25438F1410A4292A1F90D4C /* SettingsService.swift */; };
+		4B4C62AB276C47168379766A /* ButlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E034260FF84BDC8704AE58 /* ButlerTests.swift */; };
+		1D1A2B7FA316474E89325DAA /* OpenAIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */; };
+		E5FE039E6F71477E8E2ECD69 /* KeychainServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7276DAC00849B4AA1BA1AC /* KeychainServiceTests.swift */; };
+		1D20F2E64FD54F9684A55E3A /* PasteboardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */; };
+		040C4E76D0DD42A29ADA195A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63CC1E89779B4C2CB8BDABE2 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		4E706B462D773A27007AEEDA /* Butler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Butler.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E706B572D773A28007AEEDA /* ButlerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButlerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4E706B612D773A28007AEEDA /* ButlerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButlerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E706B482D773A27007AEEDA /* Butler */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Butler;
-			sourceTree = "<group>";
-		};
-		4E706B5A2D773A28007AEEDA /* ButlerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ButlerTests;
-			sourceTree = "<group>";
-		};
-		4E706B642D773A28007AEEDA /* ButlerUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ButlerUITests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
+		74C056324FF845BCB4911848 /* AppIntentsSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntentsSupport.swift; sourceTree = "<group>"; };
+		0838B3203E07418FAD154B8A /* ButlerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButlerApp.swift; sourceTree = "<group>"; };
+		2A3333FAF6FA4C95A4951839 /* AIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/AIConfiguration.swift; sourceTree = "<group>"; };
+		4874FE17C6F44CD79BFE500E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		DFB9C0231379482E9C9C4C3F /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/LogView.swift; sourceTree = "<group>"; };
+		CC97D196DA7C455FB148A2FB /* OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/OllamaClient.swift; sourceTree = "<group>"; };
+		68D7BD73EDD44491926347EB /* TextImproving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/TextImproving.swift; sourceTree = "<group>"; };
+		F62491C8348E45258CC728DC /* LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LoggerService.swift; sourceTree = "<group>"; };
+		BA701ED43CBB4146B747C754 /* RuntimeEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/RuntimeEnvironment.swift; sourceTree = "<group>"; };
+		E5ED5240BD7648A1993E70EE /* LanguageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LanguageService.swift; sourceTree = "<group>"; };
+		EB67BD41EE6446089DA8B13D /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/OpenAIService.swift; sourceTree = "<group>"; };
+		E87832E66C764613A32F5D03 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HotkeyManager.swift; sourceTree = "<group>"; };
+		1E6A6698BA1546C8882CD7E1 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/KeychainService.swift; sourceTree = "<group>"; };
+		A7EC5B4E34D2482497F8263C /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ClipboardManager.swift; sourceTree = "<group>"; };
+		B25438F1410A4292A1F90D4C /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SettingsService.swift; sourceTree = "<group>"; };
+		D2E034260FF84BDC8704AE58 /* ButlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButlerTests.swift; sourceTree = "<group>"; };
+		CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIServiceTests.swift; sourceTree = "<group>"; };
+		CD7276DAC00849B4AA1BA1AC /* KeychainServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainServiceTests.swift; sourceTree = "<group>"; };
+		00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardSnapshotTests.swift; sourceTree = "<group>"; };
+		63CC1E89779B4C2CB8BDABE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4E706B432D773A27007AEEDA /* Frameworks */ = {
@@ -62,13 +87,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4E706B5E2D773A28007AEEDA /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,7 +95,6 @@
 			children = (
 				4E706B482D773A27007AEEDA /* Butler */,
 				4E706B5A2D773A28007AEEDA /* ButlerTests */,
-				4E706B642D773A28007AEEDA /* ButlerUITests */,
 				4E706B472D773A27007AEEDA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,9 +104,42 @@
 			children = (
 				4E706B462D773A27007AEEDA /* Butler.app */,
 				4E706B572D773A28007AEEDA /* ButlerTests.xctest */,
-				4E706B612D773A28007AEEDA /* ButlerUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4E706B482D773A27007AEEDA /* Butler */ = {
+			isa = PBXGroup;
+			children = (
+				74C056324FF845BCB4911848 /* AppIntentsSupport.swift */,
+				63CC1E89779B4C2CB8BDABE2 /* Assets.xcassets */,
+				0838B3203E07418FAD154B8A /* ButlerApp.swift */,
+				2A3333FAF6FA4C95A4951839 /* AIConfiguration.swift */,
+				A7EC5B4E34D2482497F8263C /* ClipboardManager.swift */,
+				E87832E66C764613A32F5D03 /* HotkeyManager.swift */,
+				1E6A6698BA1546C8882CD7E1 /* KeychainService.swift */,
+				E5ED5240BD7648A1993E70EE /* LanguageService.swift */,
+				F62491C8348E45258CC728DC /* LoggerService.swift */,
+				CC97D196DA7C455FB148A2FB /* OllamaClient.swift */,
+				EB67BD41EE6446089DA8B13D /* OpenAIService.swift */,
+				BA701ED43CBB4146B747C754 /* RuntimeEnvironment.swift */,
+				B25438F1410A4292A1F90D4C /* SettingsService.swift */,
+				68D7BD73EDD44491926347EB /* TextImproving.swift */,
+				DFB9C0231379482E9C9C4C3F /* LogView.swift */,
+				4874FE17C6F44CD79BFE500E /* SettingsView.swift */,
+			);
+			path = Butler;
+			sourceTree = "<group>";
+		};
+		4E706B5A2D773A28007AEEDA /* ButlerTests */ = {
+			isa = PBXGroup;
+			children = (
+				D2E034260FF84BDC8704AE58 /* ButlerTests.swift */,
+				CD7276DAC00849B4AA1BA1AC /* KeychainServiceTests.swift */,
+				CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */,
+				00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */,
+			);
+			path = ButlerTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -106,9 +156,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				4E706B482D773A27007AEEDA /* Butler */,
 			);
 			name = Butler;
 			packageProductDependencies = (
@@ -130,38 +177,12 @@
 			dependencies = (
 				4E706B592D773A28007AEEDA /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				4E706B5A2D773A28007AEEDA /* ButlerTests */,
-			);
 			name = ButlerTests;
 			packageProductDependencies = (
 			);
 			productName = ButlerTests;
 			productReference = 4E706B572D773A28007AEEDA /* ButlerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		4E706B602D773A28007AEEDA /* ButlerUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4E706B712D773A28007AEEDA /* Build configuration list for PBXNativeTarget "ButlerUITests" */;
-			buildPhases = (
-				4E706B5D2D773A28007AEEDA /* Sources */,
-				4E706B5E2D773A28007AEEDA /* Frameworks */,
-				4E706B5F2D773A28007AEEDA /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4E706B632D773A28007AEEDA /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				4E706B642D773A28007AEEDA /* ButlerUITests */,
-			);
-			name = ButlerUITests;
-			packageProductDependencies = (
-			);
-			productName = ButlerUITests;
-			productReference = 4E706B612D773A28007AEEDA /* ButlerUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -177,10 +198,6 @@
 						CreatedOnToolsVersion = 16.2;
 					};
 					4E706B562D773A28007AEEDA = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = 4E706B452D773A27007AEEDA;
-					};
-					4E706B602D773A28007AEEDA = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 4E706B452D773A27007AEEDA;
 					};
@@ -202,7 +219,6 @@
 			targets = (
 				4E706B452D773A27007AEEDA /* Butler */,
 				4E706B562D773A28007AEEDA /* ButlerTests */,
-				4E706B602D773A28007AEEDA /* ButlerUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -212,17 +228,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
+			
+				040C4E76D0DD42A29ADA195A /* Assets.xcassets in Resources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4E706B552D773A28007AEEDA /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4E706B5F2D773A28007AEEDA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -236,21 +247,35 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
+			
+				F4A08CB34FC74497A7484C5C /* AppIntentsSupport.swift in Sources */,
+				71F14E4D28ED4237B794BBB8 /* ButlerApp.swift in Sources */,
+				0665D2B61E3A451881F3F6C1 /* AIConfiguration.swift in Sources */,
+				8D12B7D2128B4365B5511AE9 /* SettingsView.swift in Sources */,
+				973323F919464F0C9119FA2A /* LogView.swift in Sources */,
+				0B262CC6AC5849DA8C2C5040 /* OllamaClient.swift in Sources */,
+				4B8E975043374BAC9A1AD97C /* TextImproving.swift in Sources */,
+				E05FD592CAAE4AC4A87C078B /* LoggerService.swift in Sources */,
+				FFDD4EA6CD0946F080CFBAA9 /* RuntimeEnvironment.swift in Sources */,
+				8198D8E8372B4A3BA18C1E0B /* LanguageService.swift in Sources */,
+				C3DDCCBBB4D24A67A550B89E /* OpenAIService.swift in Sources */,
+				EF0156EA2E1440AA91041626 /* HotkeyManager.swift in Sources */,
+				D0050513ACEE4C6A98CCC32D /* KeychainService.swift in Sources */,
+				C88F6763EBCE4FB7B62A8278 /* ClipboardManager.swift in Sources */,
+				E2CCE268D1414C97B29B5D21 /* SettingsService.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4E706B532D773A28007AEEDA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4E706B5D2D773A28007AEEDA /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
+			
+				4B4C62AB276C47168379766A /* ButlerTests.swift in Sources */,
+				1D1A2B7FA316474E89325DAA /* OpenAIServiceTests.swift in Sources */,
+				E5FE039E6F71477E8E2ECD69 /* KeychainServiceTests.swift in Sources */,
+				1D20F2E64FD54F9684A55E3A /* PasteboardSnapshotTests.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -261,17 +286,13 @@
 			target = 4E706B452D773A27007AEEDA /* Butler */;
 			targetProxy = 4E706B582D773A28007AEEDA /* PBXContainerItemProxy */;
 		};
-		4E706B632D773A28007AEEDA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4E706B452D773A27007AEEDA /* Butler */;
-			targetProxy = 4E706B622D773A28007AEEDA /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4E706B692D773A28007AEEDA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -304,6 +325,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -326,6 +349,10 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -335,6 +362,7 @@
 		4E706B6A2D773A28007AEEDA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -367,6 +395,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -382,6 +412,10 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
@@ -390,6 +424,7 @@
 		4E706B6C2D773A28007AEEDA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Butler/Butler.entitlements;
@@ -397,7 +432,9 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Butler/Preview Content\"";
-				DEVELOPMENT_TEAM = LSLFA78DGX;
+				DEVELOPMENT_TEAM = 4X6PHGF7Z3;
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -408,6 +445,10 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.Butler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -418,6 +459,7 @@
 		4E706B6D2D773A28007AEEDA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Butler/Butler.entitlements;
@@ -425,7 +467,9 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Butler/Preview Content\"";
-				DEVELOPMENT_TEAM = LSLFA78DGX;
+				DEVELOPMENT_TEAM = 4X6PHGF7Z3;
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -436,6 +480,10 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.Butler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -446,13 +494,20 @@
 		4E706B6F2D773A28007AEEDA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LSLFA78DGX;
+				DEVELOPMENT_TEAM = 4X6PHGF7Z3;
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -464,50 +519,25 @@
 		4E706B702D773A28007AEEDA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEFINES_MODULE = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LSLFA78DGX;
+				DEVELOPMENT_TEAM = 4X6PHGF7Z3;
+				ENABLE_APPINTENTS_METADATA = NO;
+				ENABLE_APP_INTENTS_METADATA = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					AppIntents,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Butler.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Butler";
-			};
-			name = Release;
-		};
-		4E706B722D773A28007AEEDA /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LSLFA78DGX;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Butler;
-			};
-			name = Debug;
-		};
-		4E706B732D773A28007AEEDA /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LSLFA78DGX;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Butler;
 			};
 			name = Release;
 		};
@@ -537,15 +567,6 @@
 			buildConfigurations = (
 				4E706B6F2D773A28007AEEDA /* Debug */,
 				4E706B702D773A28007AEEDA /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4E706B712D773A28007AEEDA /* Build configuration list for PBXNativeTarget "ButlerUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4E706B722D773A28007AEEDA /* Debug */,
-				4E706B732D773A28007AEEDA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

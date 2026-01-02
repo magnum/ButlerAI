@@ -68,7 +68,7 @@ struct LogView: View {
                     LogEntryRow(entry: entry)
                         .id(entry.id)
                 }
-                .onChange(of: logger.logs) { _ in
+                .onChange(of: logger.logs) { _, _ in
                     if autoScroll, let lastLog = filteredLogs.last {
                         proxy.scrollTo(lastLog.id, anchor: .bottom)
                     }
@@ -118,6 +118,10 @@ struct LogEntryRow: View {
     }
 }
 
-#Preview {
-    LogView()
+#if DEBUG
+struct LogView_Previews: PreviewProvider {
+    static var previews: some View {
+        LogView()
+    }
 }
+#endif

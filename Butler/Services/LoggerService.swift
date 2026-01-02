@@ -1,6 +1,10 @@
 import Foundation
 import SwiftUI
 
+func log(_ message: String, type: LoggerService.LogType = .info, file: String = #file, function: String = #function, line: Int = #line) {
+    LoggerService.shared.log(message, type: type, file: file, function: function, line: line)
+}
+
 class LoggerService: ObservableObject {
     @Published var logs: [LogEntry] = []
     private let dateFormatter: DateFormatter
