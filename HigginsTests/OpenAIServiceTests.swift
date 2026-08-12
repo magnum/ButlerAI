@@ -1,5 +1,5 @@
 import XCTest
-@testable import Butler
+@testable import Higgins
 
 final class OpenAIClientTests: XCTestCase {
     func testOpenAIEndpointWithV1BaseURL() {

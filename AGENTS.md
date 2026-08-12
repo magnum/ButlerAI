@@ -1,7 +1,7 @@
-# ButlerAI Agent Notes
+# HigginsAI Agent Notes
 
 ## Product Overview
-ButlerAI is a macOS menubar app that improves selected text using AI. It runs without a dock icon, listens for a global hotkey (⌃⌥⌘C), copies the current selection, sends it to an AI backend (OpenAI or local Ollama), then pastes the improved text back while preserving clipboard contents.
+HigginsAI is a macOS menubar app that improves selected text using AI. It runs without a dock icon, listens for a global hotkey (⌃⌥⌘C), copies the current selection, sends it to an AI backend (OpenAI or local Ollama), then pastes the improved text back while preserving clipboard contents.
 
 ## High-Level Architecture
 - **UI shell:** SwiftUI `MenuBarExtra` with settings and logs windows.
@@ -10,41 +10,41 @@ ButlerAI is a macOS menubar app that improves selected text using AI. It runs wi
 - **Settings persistence:** `@AppStorage` in `SettingsService` for backend selection and configuration.
 
 ## Key Components
-- `Butler/ButlerApp.swift`
+- `Higgins/HigginsApp.swift`
   - `AppState` owns `HotkeyManager`, `ClipboardManager`, `OpenAIService`, `LanguageService`, `SettingsService`.
   - Handles menu bar UI, settings window, log window, and end-to-end “improve text” flow.
   - Uses `MenuBarExtra` with animated icon during processing.
 
-- `Butler/Services/HotkeyManager.swift`
+- `Higgins/Services/HotkeyManager.swift`
   - Watches accessibility permission with a 2s timer.
   - Uses a global keyboard monitor to detect ⌃⌥⌘C.
   - Shows a permission prompt and opens System Settings when needed.
 
-- `Butler/Services/ClipboardManager.swift`
+- `Higgins/Services/ClipboardManager.swift`
   - Simulates **Cmd+C** to capture selection and **Cmd+V** to paste.
   - Preserves and restores previous clipboard contents.
   - Uses `CGEvent` and short sleeps to allow pasteboard updates.
 
-- `Butler/Services/OpenAIService.swift`
+- `Higgins/Services/OpenAIService.swift`
   - Supports **OpenAI** and **Ollama** backends.
   - OpenAI endpoint: `.../v1/chat/completions` (supports custom base URL).
   - Ollama endpoint: `.../api/chat`; models list: `.../api/tags`.
   - Sends a system prompt + user content message array.
 
-- `Butler/Services/LanguageService.swift`
+- `Higgins/Services/LanguageService.swift`
   - Detects Italian text using `NaturalLanguage`.
   - If Italian, asks the AI to translate and improve; otherwise improves directly.
 
-- `Butler/Services/LoggerService.swift` + `Butler/Views/LogView.swift`
+- `Higgins/Services/LoggerService.swift` + `Higgins/Views/LogView.swift`
   - In-memory structured logs with type (info/warning/error).
   - Log window supports search, filtering, auto-scroll, copy, clear.
 
-- `Butler/Views/SettingsView.swift`
+- `Higgins/Views/SettingsView.swift`
   - Backend switcher (OpenAI vs Ollama).
   - OpenAI key input; Ollama URL + model picker with refresh.
   - Improvement prompt editor.
 
-- `Butler/Models/AIConfiguration.swift`
+- `Higgins/Models/AIConfiguration.swift`
   - `AIBackendType` enum.
   - Default model constant: `gpt-4o-mini`.
 
@@ -74,16 +74,16 @@ ButlerAI is a macOS menubar app that improves selected text using AI. It runs wi
 - AI request uses a chat payload with `system` and `user` messages and a fixed `temperature: 0.7`.
 
 ## Build & Test
-- Open `Butler.xcodeproj` in Xcode (macOS 12+).
-- Tests live in `ButlerTests` (UI tests removed).
+- Open `Higgins.xcodeproj` in Xcode (macOS 12+).
+- Tests live in `HigginsTests` (UI tests removed).
 
 ## Common Entry Points
-- App: `Butler/ButlerApp.swift`
-- AI: `Butler/Services/OpenAIService.swift`
-- Settings: `Butler/Views/SettingsView.swift`
-- Clipboard: `Butler/Services/ClipboardManager.swift`
-- Hotkey: `Butler/Services/HotkeyManager.swift`
-- Logs UI: `Butler/Views/LogView.swift`
+- App: `Higgins/HigginsApp.swift`
+- AI: `Higgins/Services/OpenAIService.swift`
+- Settings: `Higgins/Views/SettingsView.swift`
+- Clipboard: `Higgins/Services/ClipboardManager.swift`
+- Hotkey: `Higgins/Services/HotkeyManager.swift`
+- Logs UI: `Higgins/Views/LogView.swift`
 
 # unit tests
 Use XCTest for unit tests.

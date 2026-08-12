@@ -18,7 +18,7 @@ jobs:
       - name: Select and Verify Xcode 16.2
         run: |
           # Define log tag function
-          log() { echo "[BUTLER] $1"; }
+          log() { echo "[HIGGINS] $1"; }
           
           log "Selecting Xcode version..."
           sudo xcode-select -s /Applications/Xcode_16.2.app
@@ -39,7 +39,7 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ github.run_id }}
         run: |
           # Define log tag function
-          log() { echo "[BUTLER] $1"; }
+          log() { echo "[HIGGINS] $1"; }
 
           log "Setting up keychain..."
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
@@ -143,22 +143,22 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ github.run_id }}
         run: |
           # Define log tag function
-          log() { echo "[BUTLER] $1"; }
+          log() { echo "[HIGGINS] $1"; }
           
           # Build the app (with detailed logging)
           log "Starting app build..."
-          log "Archive path: $RUNNER_TEMP/Butler.xcarchive"
-          if xcodebuild -project Butler.xcodeproj \
-            -scheme Butler \
+          log "Archive path: $RUNNER_TEMP/Higgins.xcarchive"
+          if xcodebuild -project Higgins.xcodeproj \
+            -scheme Higgins \
             -configuration Release \
-            -archivePath $RUNNER_TEMP/Butler.xcarchive \
+            -archivePath $RUNNER_TEMP/Higgins.xcarchive \
             archive \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             CODE_SIGN_STYLE=Manual \
             -verbose; then
               log "App build completed successfully"
-              log "Archive size: $(du -sh $RUNNER_TEMP/Butler.xcarchive | cut -f1)"
+              log "Archive size: $(du -sh $RUNNER_TEMP/Higgins.xcarchive | cut -f1)"
           else
               log "Error: App build failed"
               exit 1
@@ -184,14 +184,14 @@ jobs:
           log "Export path: $RUNNER_TEMP/export"
           security find-identity -v -p codesigning
           if xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Butler.xcarchive \
+            -archivePath $RUNNER_TEMP/Higgins.xcarchive \
             -exportPath $RUNNER_TEMP/export \
             -exportOptionsPlist ExportOptions.plist \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             -verbose; then
               log "Archive exported successfully"
-              log "App size: $(du -sh $RUNNER_TEMP/export/Butler.app | cut -f1)"
+              log "App size: $(du -sh $RUNNER_TEMP/export/Higgins.app | cut -f1)"
           else
               log "Error: Archive export failed"
               exit 1
@@ -199,9 +199,9 @@ jobs:
 
           # Create DMG
           log "Creating DMG..."
-          if hdiutil create -volname "ButlerAI" -srcfolder $RUNNER_TEMP/export/Butler.app -ov -format UDZO $RUNNER_TEMP/ButlerAI.dmg; then
+          if hdiutil create -volname "HigginsAI" -srcfolder $RUNNER_TEMP/export/Higgins.app -ov -format UDZO $RUNNER_TEMP/HigginsAI.dmg; then
               log "DMG created successfully"
-              log "DMG size: $(du -sh $RUNNER_TEMP/ButlerAI.dmg | cut -f1)"
+              log "DMG size: $(du -sh $RUNNER_TEMP/HigginsAI.dmg | cut -f1)"
           else
               log "Error: DMG creation failed"
               exit 1
@@ -212,12 +212,12 @@ jobs:
           TEAM_ID_FROM_CERT=$(security find-identity -v -p codesigning | grep "Developer ID" | cut -d '"' -f 2 | cut -d '(' -f 2 | cut -d ')' -f 1)
           log "Using Team ID: $TEAM_ID_FROM_CERT"
           
-          if xcrun notarytool submit $RUNNER_TEMP/ButlerAI.dmg --apple-id "$APPLE_DEVELOPER_ID" --password "$APPLE_DEVELOPER_PASSWORD" --team-id "$TEAM_ID_FROM_CERT" --wait; then
+          if xcrun notarytool submit $RUNNER_TEMP/HigginsAI.dmg --apple-id "$APPLE_DEVELOPER_ID" --password "$APPLE_DEVELOPER_PASSWORD" --team-id "$TEAM_ID_FROM_CERT" --wait; then
               log "DMG notarization submitted successfully"
               log "Stapling DMG..."
-              if xcrun stapler staple $RUNNER_TEMP/ButlerAI.dmg; then
+              if xcrun stapler staple $RUNNER_TEMP/HigginsAI.dmg; then
                   log "DMG stapling completed successfully"
-                  log "Final DMG size: $(du -sh $RUNNER_TEMP/ButlerAI.dmg | cut -f1)"
+                  log "Final DMG size: $(du -sh $RUNNER_TEMP/HigginsAI.dmg | cut -f1)"
               else
                   log "Error: DMG stapling failed"
                   exit 1
@@ -230,7 +230,7 @@ jobs:
       - name: Log Release Creation
         run: |
           # Define log tag function
-          log() { echo "[BUTLER] $1"; }
+          log() { echo "[HIGGINS] $1"; }
           log "Creating GitHub release..."
 
       - name: Create Release
@@ -247,7 +247,7 @@ jobs:
       - name: Log Upload
         run: |
           # Define log tag function
-          log() { echo "[BUTLER] $1"; }
+          log() { echo "[HIGGINS] $1"; }
           log "Uploading DMG to release..."
 
       - name: Upload Release Asset
@@ -256,6 +256,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ runner.temp }}/ButlerAI.dmg
-          asset_name: ButlerAI.dmg
+          asset_path: ${{ runner.temp }}/HigginsAI.dmg
+          asset_name: HigginsAI.dmg
           asset_content_type: application/x-apple-diskimage

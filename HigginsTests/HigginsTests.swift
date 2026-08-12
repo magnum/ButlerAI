@@ -1,17 +1,17 @@
 //
-//  ButlerTests.swift
-//  ButlerTests
+//  HigginsTests.swift
+//  HigginsTests
 //
 //  Created by Scalzo, Giordano on 04/03/2025.
 //
 
 import XCTest
-@testable import Butler
+@testable import Higgins
 #if canImport(AppIntents)
 import AppIntents
 #endif
 
-final class ButlerTests: XCTestCase {
+final class HigginsTests: XCTestCase {
     func testDetectLanguageItalian() {
         let service = LanguageService(textImprover: OpenAIClient(
             apiKey: "test-key",

@@ -1,10 +1,10 @@
 import AppKit
 import XCTest
-@testable import Butler
+@testable import Higgins
 
 final class PasteboardSnapshotTests: XCTestCase {
     func testPasteboardSnapshotRestoresString() {
-        let pasteboard = NSPasteboard(name: NSPasteboard.Name("ButlerTests.PasteboardSnapshot.Restore\(UUID().uuidString)"))
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("HiggnsTests.PasteboardSnapshot.Restore\(UUID().uuidString)"))
         pasteboard.clearContents()
         pasteboard.setString("Original", forType: .string)
 
@@ -18,7 +18,7 @@ final class PasteboardSnapshotTests: XCTestCase {
     }
 
     func testPasteboardSnapshotRestoresEmptyState() {
-        let pasteboard = NSPasteboard(name: NSPasteboard.Name("ButlerTests.PasteboardSnapshot.Empty\(UUID().uuidString)"))
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("HigginsTests.PasteboardSnapshot.Empty\(UUID().uuidString)"))
         pasteboard.clearContents()
 
         let snapshot = PasteboardSnapshot(pasteboard: pasteboard)

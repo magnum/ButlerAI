@@ -23,7 +23,7 @@ class AppState: ObservableObject {
     }
     
     init() {
-        log("Initializing ButlerAI")
+        log("Initializing HigginsAI")
         self.updateAIService() // Initial call
         if RuntimeEnvironment.isRunningTests {
             log("Skipping hotkey setup during tests")
@@ -119,7 +119,7 @@ class AppState: ObservableObject {
                     "OpenAI API Key Required" :
                     "Ollama Connection Error"
                 alert.informativeText = settingsService.aiBackend == .openAI ?
-                    "Please open Settings and enter your OpenAI API key to use ButlerAI." :
+                    "Please open Settings and enter your OpenAI API key to use HigginsAI." :
                     "Please make sure Ollama is running and check your server URL in Settings."
                 alert.alertStyle = .warning
                 alert.addButton(withTitle: "Open Settings")
@@ -173,7 +173,7 @@ class AppState: ObservableObject {
 }
 
 @main
-struct ButlerApp: App {
+struct HigginsApp: App {
     @StateObject private var appState = AppState()
     
     var body: some Scene {
@@ -192,9 +192,20 @@ struct ButlerApp: App {
 
         Settings {
             SettingsView(settings: appState.settingsService)
+                .onAppear {
+                    // Activate app and bring Settings window to front regardless of other apps
+                    NSApp.activate(ignoringOtherApps: true)
+                    // Attempt to make the Settings window key and frontmost
+                    for window in NSApp.windows {
+                        if String(describing: type(of: window)).contains("NSPreferences") || window.title.contains("Settings") {
+                            window.makeKeyAndOrderFront(nil)
+                            window.orderFrontRegardless()
+                        }
+                    }
+                }
         }
 
-        Window("ButlerAI Logs", id: "logs") {
+        Window("HigginsAI Logs", id: "logs") {
             LogView()
         }
         .defaultSize(width: 800, height: 600)
@@ -221,7 +232,7 @@ struct MenuContentView: View {
                 }
                 .frame(width: 18, height: 18)
 
-                Text("ButlerAI")
+                Text("HigginsAI")
                     .font(.headline)
             }
             .padding(.vertical, 8)
@@ -253,7 +264,7 @@ struct MenuContentView: View {
             .keyboardShortcut(",")
             .padding(.vertical, 4)
 
-            Button("Quit ButlerAI") {
+            Button("Quit HigginsAI") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")

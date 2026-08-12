@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4E706B452D773A27007AEEDA"
-               BuildableName = "Butler.app"
-               BlueprintName = "Butler"
-               ReferencedContainer = "container:Butler.xcodeproj">
+               BuildableName = "Higgins.app"
+               BlueprintName = "Higgins"
+               ReferencedContainer = "container:Higgins.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4E706B562D773A28007AEEDA"
-               BuildableName = "ButlerTests.xctest"
-               BlueprintName = "ButlerTests"
-               ReferencedContainer = "container:Butler.xcodeproj">
+               BuildableName = "HigginsTests.xctest"
+               BlueprintName = "HigginsTests"
+               ReferencedContainer = "container:Higgins.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4E706B452D773A27007AEEDA"
-            BuildableName = "Butler.app"
-            BlueprintName = "Butler"
-            ReferencedContainer = "container:Butler.xcodeproj">
+            BuildableName = "Higgins.app"
+            BlueprintName = "Higgins"
+            ReferencedContainer = "container:Higgins.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4E706B452D773A27007AEEDA"
-            BuildableName = "Butler.app"
-            BlueprintName = "Butler"
-            ReferencedContainer = "container:Butler.xcodeproj">
+            BuildableName = "Higgins.app"
+            BlueprintName = "Higgins"
+            ReferencedContainer = "container:Higgins.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

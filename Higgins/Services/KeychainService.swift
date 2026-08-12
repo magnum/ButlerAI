@@ -15,7 +15,7 @@ final class KeychainService {
 
     private let service: String
 
-    init(service: String = Bundle.main.bundleIdentifier ?? "ButlerAI") {
+    init(service: String = Bundle.main.bundleIdentifier ?? "HigginsAI") {
         self.service = service
     }
 

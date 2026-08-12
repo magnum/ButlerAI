@@ -23,9 +23,9 @@ __________        __  .__                  _____  .___
   <a href="#support--feedback">Support</a>
 </p>
 
-# ButlerAI - Your Text Enhancement Assistant 🎩
+# HigginsAI - Your Text Enhancement Assistant 🎩
 
-ButlerAI is an elegant macOS menubar application that helps you improve your writing with the power of AI. Just select any text, press a shortcut, and watch as your text is refined and enhanced.
+HigginsAI is an elegant macOS menubar application that helps you improve your writing with the power of AI. Just select any text, press a shortcut, and watch as your text is refined and enhanced.
 
 ## Features 🌟
 
@@ -37,10 +37,10 @@ ButlerAI is an elegant macOS menubar application that helps you improve your wri
 
 ## Installation 🚀
 
-1. Download ButlerAI.dmg from the [Releases page](../../releases/latest)
+1. Download HigginsAI.dmg from the [Releases page](../../releases/latest)
 2. Open the DMG file
-3. Drag ButlerAI.app to your Applications folder
-4. Launch ButlerAI from Applications
+3. Drag HigginsAI.app to your Applications folder
+4. Launch HigginsAI from Applications
 5. Configure your OpenAI API key in settings
 
 ## Setup ⚙️
@@ -92,7 +92,7 @@ Please write a story about a dragon residing in San Francisco who works as a sof
 
 ## Error Messages 🔍
 
-ButlerAI provides clear feedback when something goes wrong:
+HigginsAI provides clear feedback when something goes wrong:
 - Missing API key notifications
 - No text selected warnings
 - Network connectivity issues

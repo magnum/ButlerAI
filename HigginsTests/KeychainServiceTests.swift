@@ -1,10 +1,10 @@
 import XCTest
-@testable import Butler
+@testable import Higgins
 
 final class KeychainServiceTests: XCTestCase {
     func testKeychainSetGetDelete() throws {
         try runOffMainThread {
-            let service = KeychainService(service: "ButlerTests.Keychain.\(UUID().uuidString)")
+            let service = KeychainService(service: "HigginsTests.Keychain.\(UUID().uuidString)")
             let key = "openaiKey"
 
             try service.set("secret", for: key)
@@ -17,7 +17,7 @@ final class KeychainServiceTests: XCTestCase {
 
     private func runOffMainThread(_ work: @escaping () throws -> Void) throws {
         let expectation = expectation(description: "Keychain work off main thread")
-        let queue = DispatchQueue(label: "ButlerTests.Keychain", qos: .userInitiated)
+        let queue = DispatchQueue(label: "HigginsTests.Keychain", qos: .userInitiated)
         var capturedError: Error?
 
         queue.async {

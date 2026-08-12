@@ -63,12 +63,12 @@ class HotkeyManager {
                 let alert = NSAlert()
                 alert.messageText = "Accessibility Access Required"
                 alert.informativeText = """
-                    ButlerAI needs accessibility access to detect keyboard shortcuts.
+                    HigginsAI needs accessibility access to detect keyboard shortcuts.
                     
                     Please enable it in System Settings:
                     1. Open System Settings
                     2. Go to Privacy & Security > Accessibility
-                    3. Enable ButlerAI
+                    3. Enable HigginsAI
                     """
                 alert.alertStyle = .warning
                 alert.addButton(withTitle: "Open System Settings")
@@ -111,3 +111,4 @@ class HotkeyManager {
         }
     }
 }
+

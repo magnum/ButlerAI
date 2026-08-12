@@ -12,9 +12,9 @@
 		0B262CC6AC5849DA8C2C5040 /* Services/OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC97D196DA7C455FB148A2FB /* Services/OllamaClient.swift */; };
 		1D1A2B7FA316474E89325DAA /* OpenAIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */; };
 		1D20F2E64FD54F9684A55E3A /* PasteboardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */; };
-		4B4C62AB276C47168379766A /* ButlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E034260FF84BDC8704AE58 /* ButlerTests.swift */; };
+		4B4C62AB276C47168379766A /* HigginsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E034260FF84BDC8704AE58 /* HigginsTests.swift */; };
 		4B8E975043374BAC9A1AD97C /* Services/TextImproving.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D7BD73EDD44491926347EB /* Services/TextImproving.swift */; };
-		71F14E4D28ED4237B794BBB8 /* ButlerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0838B3203E07418FAD154B8A /* ButlerApp.swift */; };
+		71F14E4D28ED4237B794BBB8 /* HigginsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0838B3203E07418FAD154B8A /* HigginsApp.swift */; };
 		8198D8E8372B4A3BA18C1E0B /* Services/LanguageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5ED5240BD7648A1993E70EE /* Services/LanguageService.swift */; };
 		8D12B7D2128B4365B5511AE9 /* Views/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4874FE17C6F44CD79BFE500E /* Views/SettingsView.swift */; };
 		973323F919464F0C9119FA2A /* Views/LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB9C0231379482E9C9C4C3F /* Views/LogView.swift */; };
@@ -35,18 +35,18 @@
 			containerPortal = 4E706B3E2D773A27007AEEDA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 4E706B452D773A27007AEEDA;
-			remoteInfo = Butler;
+			remoteInfo = Higgins;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardSnapshotTests.swift; sourceTree = "<group>"; };
-		0838B3203E07418FAD154B8A /* ButlerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButlerApp.swift; sourceTree = "<group>"; };
+		0838B3203E07418FAD154B8A /* HigginsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HigginsApp.swift; sourceTree = "<group>"; };
 		1E6A6698BA1546C8882CD7E1 /* Services/KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/KeychainService.swift; sourceTree = "<group>"; };
 		2A3333FAF6FA4C95A4951839 /* Models/AIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/AIConfiguration.swift; sourceTree = "<group>"; };
 		4874FE17C6F44CD79BFE500E /* Views/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
-		4E706B462D773A27007AEEDA /* Butler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Butler.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4E706B572D773A28007AEEDA /* ButlerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ButlerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E706B462D773A27007AEEDA /* Higgins.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Higgins.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E706B572D773A28007AEEDA /* HigginsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HigginsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		63CC1E89779B4C2CB8BDABE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		68D7BD73EDD44491926347EB /* Services/TextImproving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/TextImproving.swift; sourceTree = "<group>"; };
 		74C056324FF845BCB4911848 /* AppIntentsSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntentsSupport.swift; sourceTree = "<group>"; };
@@ -56,7 +56,7 @@
 		CC97D196DA7C455FB148A2FB /* Services/OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/OllamaClient.swift; sourceTree = "<group>"; };
 		CD7276DAC00849B4AA1BA1AC /* KeychainServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainServiceTests.swift; sourceTree = "<group>"; };
 		CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIServiceTests.swift; sourceTree = "<group>"; };
-		D2E034260FF84BDC8704AE58 /* ButlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButlerTests.swift; sourceTree = "<group>"; };
+		D2E034260FF84BDC8704AE58 /* HigginsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HigginsTests.swift; sourceTree = "<group>"; };
 		DFB9C0231379482E9C9C4C3F /* Views/LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/LogView.swift; sourceTree = "<group>"; };
 		E5ED5240BD7648A1993E70EE /* Services/LanguageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LanguageService.swift; sourceTree = "<group>"; };
 		E87832E66C764613A32F5D03 /* Services/HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HotkeyManager.swift; sourceTree = "<group>"; };
@@ -85,8 +85,8 @@
 		4E706B3D2D773A27007AEEDA = {
 			isa = PBXGroup;
 			children = (
-				4E706B482D773A27007AEEDA /* Butler */,
-				4E706B5A2D773A28007AEEDA /* ButlerTests */,
+				4E706B482D773A27007AEEDA /* Higgins */,
+				4E706B5A2D773A28007AEEDA /* HigginsTests */,
 				4E706B472D773A27007AEEDA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,18 +94,18 @@
 		4E706B472D773A27007AEEDA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4E706B462D773A27007AEEDA /* Butler.app */,
-				4E706B572D773A28007AEEDA /* ButlerTests.xctest */,
+				4E706B462D773A27007AEEDA /* Higgins.app */,
+				4E706B572D773A28007AEEDA /* HigginsTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4E706B482D773A27007AEEDA /* Butler */ = {
+		4E706B482D773A27007AEEDA /* Higgins */ = {
 			isa = PBXGroup;
 			children = (
 				74C056324FF845BCB4911848 /* AppIntentsSupport.swift */,
 				63CC1E89779B4C2CB8BDABE2 /* Assets.xcassets */,
-				0838B3203E07418FAD154B8A /* ButlerApp.swift */,
+				0838B3203E07418FAD154B8A /* HigginsApp.swift */,
 				2A3333FAF6FA4C95A4951839 /* Models/AIConfiguration.swift */,
 				A7EC5B4E34D2482497F8263C /* Services/ClipboardManager.swift */,
 				E87832E66C764613A32F5D03 /* Services/HotkeyManager.swift */,
@@ -120,26 +120,26 @@
 				DFB9C0231379482E9C9C4C3F /* Views/LogView.swift */,
 				4874FE17C6F44CD79BFE500E /* Views/SettingsView.swift */,
 			);
-			path = Butler;
+			path = Higgins;
 			sourceTree = "<group>";
 		};
-		4E706B5A2D773A28007AEEDA /* ButlerTests */ = {
+		4E706B5A2D773A28007AEEDA /* HigginsTests */ = {
 			isa = PBXGroup;
 			children = (
-				D2E034260FF84BDC8704AE58 /* ButlerTests.swift */,
+				D2E034260FF84BDC8704AE58 /* HigginsTests.swift */,
 				CD7276DAC00849B4AA1BA1AC /* KeychainServiceTests.swift */,
 				CFEEDC4D3E964C9DB9D18D4A /* OpenAIServiceTests.swift */,
 				00A170BABAFD48EDA419AE3C /* PasteboardSnapshotTests.swift */,
 			);
-			path = ButlerTests;
+			path = HigginsTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4E706B452D773A27007AEEDA /* Butler */ = {
+		4E706B452D773A27007AEEDA /* Higgins */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4E706B6B2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "Butler" */;
+			buildConfigurationList = 4E706B6B2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "Higgins" */;
 			buildPhases = (
 				4E706B422D773A27007AEEDA /* Sources */,
 				4E706B432D773A27007AEEDA /* Frameworks */,
@@ -149,16 +149,16 @@
 			);
 			dependencies = (
 			);
-			name = Butler;
+			name = Higgins;
 			packageProductDependencies = (
 			);
-			productName = Butler;
-			productReference = 4E706B462D773A27007AEEDA /* Butler.app */;
+			productName = Higgins;
+			productReference = 4E706B462D773A27007AEEDA /* Higgins.app */;
 			productType = "com.apple.product-type.application";
 		};
-		4E706B562D773A28007AEEDA /* ButlerTests */ = {
+		4E706B562D773A28007AEEDA /* HigginsTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4E706B6E2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "ButlerTests" */;
+			buildConfigurationList = 4E706B6E2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "HigginsTests" */;
 			buildPhases = (
 				4E706B532D773A28007AEEDA /* Sources */,
 				4E706B542D773A28007AEEDA /* Frameworks */,
@@ -169,11 +169,11 @@
 			dependencies = (
 				4E706B592D773A28007AEEDA /* PBXTargetDependency */,
 			);
-			name = ButlerTests;
+			name = HigginsTests;
 			packageProductDependencies = (
 			);
-			productName = ButlerTests;
-			productReference = 4E706B572D773A28007AEEDA /* ButlerTests.xctest */;
+			productName = HigginsTests;
+			productReference = 4E706B572D773A28007AEEDA /* HigginsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -195,7 +195,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4E706B412D773A27007AEEDA /* Build configuration list for PBXProject "Butler" */;
+			buildConfigurationList = 4E706B412D773A27007AEEDA /* Build configuration list for PBXProject "Higgins" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -209,8 +209,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4E706B452D773A27007AEEDA /* Butler */,
-				4E706B562D773A28007AEEDA /* ButlerTests */,
+				4E706B452D773A27007AEEDA /* Higgins */,
+				4E706B562D773A28007AEEDA /* HigginsTests */,
 			);
 		};
 /* End PBXProject section */
@@ -239,7 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4A08CB34FC74497A7484C5C /* AppIntentsSupport.swift in Sources */,
-				71F14E4D28ED4237B794BBB8 /* ButlerApp.swift in Sources */,
+				71F14E4D28ED4237B794BBB8 /* HigginsApp.swift in Sources */,
 				0665D2B61E3A451881F3F6C1 /* Models/AIConfiguration.swift in Sources */,
 				8D12B7D2128B4365B5511AE9 /* Views/SettingsView.swift in Sources */,
 				973323F919464F0C9119FA2A /* Views/LogView.swift in Sources */,
@@ -260,7 +260,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B4C62AB276C47168379766A /* ButlerTests.swift in Sources */,
+				4B4C62AB276C47168379766A /* HigginsTests.swift in Sources */,
 				1D1A2B7FA316474E89325DAA /* OpenAIServiceTests.swift in Sources */,
 				E5FE039E6F71477E8E2ECD69 /* KeychainServiceTests.swift in Sources */,
 				1D20F2E64FD54F9684A55E3A /* PasteboardSnapshotTests.swift in Sources */,
@@ -272,7 +272,7 @@
 /* Begin PBXTargetDependency section */
 		4E706B592D773A28007AEEDA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4E706B452D773A27007AEEDA /* Butler */;
+			target = 4E706B452D773A27007AEEDA /* Higgins */;
 			targetProxy = 4E706B582D773A28007AEEDA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -424,13 +424,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = YES;
-				CODE_SIGN_ENTITLEMENTS = Butler/Butler.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Higgins/Higgins.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Butler/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Higgins/Preview Content\"";
 				DEVELOPMENT_TEAM = H82AJFZ9LV;
 				ENABLE_APPINTENTS_METADATA = NO;
 				ENABLE_APP_INTENTS_METADATA = NO;
@@ -454,7 +454,7 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.Butler;
+				PRODUCT_BUNDLE_IDENTIFIER = com.m6i.higgins;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -467,13 +467,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = YES;
-				CODE_SIGN_ENTITLEMENTS = Butler/Butler.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Higgins/Higgins.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Butler/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Higgins/Preview Content\"";
 				DEVELOPMENT_TEAM = H82AJFZ9LV;
 				ENABLE_APPINTENTS_METADATA = NO;
 				ENABLE_APP_INTENTS_METADATA = NO;
@@ -497,7 +497,7 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.Butler;
+				PRODUCT_BUNDLE_IDENTIFIER = com.m6i.higgins;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -524,11 +524,11 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.HigginsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Butler.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Butler";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Higgins.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Higgins";
 			};
 			name = Debug;
 		};
@@ -552,18 +552,18 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.ButlerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.HigginsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Butler.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Butler";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Higgins.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Higgins";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4E706B412D773A27007AEEDA /* Build configuration list for PBXProject "Butler" */ = {
+		4E706B412D773A27007AEEDA /* Build configuration list for PBXProject "Higgins" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4E706B692D773A28007AEEDA /* Debug */,
@@ -572,7 +572,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4E706B6B2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "Butler" */ = {
+		4E706B6B2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "Higgins" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4E706B6C2D773A28007AEEDA /* Debug */,
@@ -581,7 +581,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4E706B6E2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "ButlerTests" */ = {
+		4E706B6E2D773A28007AEEDA /* Build configuration list for PBXNativeTarget "HigginsTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4E706B6F2D773A28007AEEDA /* Debug */,
