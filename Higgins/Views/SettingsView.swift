@@ -146,18 +146,19 @@ struct SettingsView: View {
             .padding()
             
             Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Keyboard Shortcut")
+              VStack(alignment: .leading, spacing: 8) {
+                    Text("Keyboard shortcut2")
                         .font(.headline)
-                    HStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         Text("⌃⌥⌘C")
                             .padding(4)
                             .background(Color.secondary.opacity(0.1))
                             .cornerRadius(4)
-                        Text("- Improve Selected Text")
+                        Text("Improve selected text")
                             .foregroundColor(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding()
         }
@@ -261,4 +262,8 @@ struct SettingsView: View {
         
         isLoadingModels = false
     }
+}
+
+#Preview {
+    SettingsView(settings: SettingsService())
 }

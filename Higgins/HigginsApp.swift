@@ -64,12 +64,54 @@ class AppState: ObservableObject {
         log("AI service updated (Backend: \(settingsService.aiBackend.rawValue), Model: \(settingsService.selectedModel))")
     }
     
+    /// Returns true if Accessibility is granted. If not, registers the app in the
+    /// Accessibility list and — when `showGuidance` is true — shows a reliable
+    /// alert that opens System Settings. Simulating Cmd+C / Cmd+V to read and
+    /// replace text requires this permission.
+    @discardableResult
+    private func ensureAccessibilityPermission(showGuidance: Bool = true) -> Bool {
+        if AXIsProcessTrusted() { return true }
+
+        log("Accessibility not granted", type: .warning)
+        // Register the app in the Accessibility list (and trigger the native
+        // prompt if the system chooses to show it).
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        AXIsProcessTrustedWithOptions(options)
+
+        guard showGuidance else { return false }
+
+        let alert = NSAlert()
+        alert.messageText = "Accesso Accessibilità richiesto"
+        alert.informativeText = """
+            HigginsAI ha bisogno dell'accesso Accessibilità per leggere il testo selezionato e incollare la versione migliorata.
+
+            Attivalo in Impostazioni di Sistema ▸ Privacy e sicurezza ▸ Accessibilità, poi premi di nuovo ⌃⌥⌘C.
+            """
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Apri Impostazioni di Sistema")
+        alert.addButton(withTitle: "Più tardi")
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+        return false
+    }
+
     private func setupHotkeyManager() {
         log("Setting up hotkey (⌃⌥⌘C)")
         hotkeyManager = HotkeyManager { [weak self] in
             log("Hotkey triggered")
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
+                // The Carbon hot key fires without Accessibility, but simulating
+                // Cmd+C / Cmd+V to read and replace text does require it. Ask the
+                // user if it hasn't been granted yet.
+                guard self.ensureAccessibilityPermission() else {
+                    log("Aborting: waiting for the user to grant Accessibility, then press ⌃⌥⌘C again")
+                    return
+                }
                 // Run preflight and improvement entirely asynchronously to avoid blocking the main thread
                 Task { [weak self] in
                     guard let self = self else { return }
@@ -100,8 +142,14 @@ class AppState: ObservableObject {
                 }
             }
         }
+
+        // Ask for Accessibility up-front so the user can grant it before the
+        // first shortcut use. Deferred so it doesn't block app launch.
+        DispatchQueue.main.async { [weak self] in
+            self?.ensureAccessibilityPermission()
+        }
     }
-    
+
     private func improveSelectedText() async {
         log("Starting text improvement")
         do {

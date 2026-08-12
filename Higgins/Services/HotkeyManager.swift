@@ -2,113 +2,87 @@ import Foundation
 import Carbon
 import AppKit
 
+/// Registers the global shortcut ⌃⌥⌘C using a Carbon hot key.
+///
+/// Unlike `NSEvent.addGlobalMonitorForEvents`, a Carbon hot key is registered
+/// directly with the window server and therefore fires **without** requiring
+/// Accessibility permission. This lets the shortcut work immediately; the
+/// Accessibility permission is only requested later, on first actual use,
+/// when the app needs to simulate Cmd+C / Cmd+V to read and replace text.
 class HotkeyManager {
+    private var hotKeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
-    private var monitorEvent: Any?
-    private var permissionTimer: Timer?
     private let callback: () -> Void
-    
+
     init(callback: @escaping () -> Void) {
         self.callback = callback
         if RuntimeEnvironment.isRunningTests {
-            log("Skipping accessibility check during tests")
+            log("Skipping hotkey registration during tests")
         } else {
-            setupAccessibilityCheck()
-        }
-    }
-    
-    deinit {
-        log("Cleaning up HotkeyManager")
-        if let handler = eventHandler {
-            RemoveEventHandler(handler)
-        }
-        if let monitor = monitorEvent {
-            NSEvent.removeMonitor(monitor)
-        }
-        permissionTimer?.invalidate()
-    }
-    
-    private func setupAccessibilityCheck() {
-        log("Setting up accessibility check")
-        
-        // Initial check
-        checkAccessibilityPermissions()
-        
-        // Periodic check if not granted
-        if !AXIsProcessTrusted() {
-            log("Starting permission check timer")
-            permissionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
-                if AXIsProcessTrusted() {
-                    log("Accessibility permission detected")
-                    timer.invalidate()
-                    self?.onAccessibilityGranted()
-                }
-            }
-        }
-    }
-    
-    private func onAccessibilityGranted() {
-        log("Accessibility permission granted")
-        registerHotkey()
-    }
-    
-    private func checkAccessibilityPermissions() {
-        if !AXIsProcessTrusted() {
-            log("Warning: App is not trusted for accessibility", type: .warning)
-            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-            AXIsProcessTrustedWithOptions(options)
-            
-            // Show alert about accessibility permissions
-            DispatchQueue.main.async {
-                let alert = NSAlert()
-                alert.messageText = "Accessibility Access Required"
-                alert.informativeText = """
-                    HigginsAI needs accessibility access to detect keyboard shortcuts.
-                    
-                    Please enable it in System Settings:
-                    1. Open System Settings
-                    2. Go to Privacy & Security > Accessibility
-                    3. Enable HigginsAI
-                    """
-                alert.alertStyle = .warning
-                alert.addButton(withTitle: "Open System Settings")
-                alert.addButton(withTitle: "Later")
-                
-                NSApp.activate(ignoringOtherApps: true)
-                if alert.runModal() == .alertFirstButtonReturn {
-                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
-                }
-            }
-        } else {
-            log("App is trusted for accessibility")
             registerHotkey()
         }
     }
-    
-    private func registerHotkey() {
-        log("Registering global hotkey ⌃⌥⌘C")
-        
-        // Set up monitoring of global keyboard events
-        monitorEvent = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self = self else {
-                log("Warning: Self is nil in hotkey handler", type: .warning)
-                return
-            }
-            
-            if event.modifierFlags.contains([.control, .option, .command]) &&
-               event.keyCode == 0x08 { // 'c' key
-                log("Global keyboard shortcut ⌃⌥⌘C detected")
-                DispatchQueue.main.async {
-                    self.callback()
-                }
-            }
+
+    deinit {
+        log("Cleaning up HotkeyManager")
+        if let hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
         }
-        
-        if monitorEvent == nil {
-            log("Error: Failed to register global monitor", type: .error)
-        } else {
-            log("Global keyboard monitor registered successfully")
+        if let eventHandler {
+            RemoveEventHandler(eventHandler)
         }
     }
-}
 
+    private func registerHotkey() {
+        log("Registering global hotkey ⌃⌥⌘C via Carbon (no accessibility required to detect it)")
+
+        // Install a handler for "hot key pressed" events.
+        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
+                                      eventKind: UInt32(kEventHotKeyPressed))
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+
+        let handlerStatus = InstallEventHandler(
+            GetApplicationEventTarget(),
+            { _, _, userData -> OSStatus in
+                guard let userData else { return noErr }
+                let manager = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
+                manager.handleHotkey()
+                return noErr
+            },
+            1, &eventType, selfPtr, &eventHandler
+        )
+
+        if handlerStatus != noErr {
+            log("Failed to install hot key event handler (status: \(handlerStatus))", type: .error)
+            return
+        }
+
+        // Register ⌃⌥⌘C. The 'HGNS' signature identifies our hot key.
+        let hotKeyID = EventHotKeyID(signature: fourCharCode("HGNS"), id: 1)
+        let modifiers = UInt32(controlKey | optionKey | cmdKey)
+        let keyCode = UInt32(0x08) // 'c'
+
+        let status = RegisterEventHotKey(keyCode, modifiers, hotKeyID,
+                                         GetApplicationEventTarget(), 0, &hotKeyRef)
+        if status == noErr {
+            log("Global hotkey ⌃⌥⌘C registered successfully")
+        } else {
+            log("Failed to register global hotkey (status: \(status))", type: .error)
+        }
+    }
+
+    private func handleHotkey() {
+        log("Global hotkey ⌃⌥⌘C detected")
+        DispatchQueue.main.async { [weak self] in
+            self?.callback()
+        }
+    }
+
+    private func fourCharCode(_ string: String) -> FourCharCode {
+        var result: FourCharCode = 0
+        for scalar in string.unicodeScalars.prefix(4) {
+            result = (result << 8) + FourCharCode(scalar.value & 0xFF)
+        }
+        return result
+    }
+}
