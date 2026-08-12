@@ -1,125 +1,109 @@
 import Foundation
 
 final class OllamaClient: TextImproving {
-    private let basePrompt: String
+    private let prompt: String
     private let model: String
-    private let baseURL: URL
+    private let baseURL: URL?
+    private let serverURL: String
+    private let session: URLSession
 
-    init(prompt: String, model: String, serverURL: String) {
-        self.basePrompt = prompt
+    init(
+        prompt: String,
+        model: String,
+        serverURL: String = AIModelConstants.defaultOllamaURL,
+        session: URLSession = .shared
+    ) {
+        self.prompt = prompt
         self.model = model
-        self.baseURL = URL(string: serverURL) ?? URL(string: "http://localhost:11434")!
-        log("Ollama client initialized with model: \(model), BaseURL: \(self.baseURL.absoluteString)")
+        self.serverURL = serverURL
+        self.baseURL = URL(string: serverURL)
+        self.session = session
     }
 
-    static func fetchModels(serverURL: String = "http://localhost:11434") async throws -> [String] {
-        let url = URL(string: "\(serverURL)/api/tags")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+    static func chatEndpoint(baseURL: URL) -> URL {
+        baseURL.appendingPathComponent("api/chat")
+    }
 
-        log("Fetching models from Ollama server: \(serverURL)")
+    static func modelsEndpoint(baseURL: URL) -> URL {
+        baseURL.appendingPathComponent("api/tags")
+    }
 
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                log("Invalid response from Ollama server (not an HTTPURLResponse)", type: .error)
-                throw OpenAIError.invalidResponse(statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0, responseBody: "Response was not HTTPURLResponse")
-            }
-
-            if httpResponse.statusCode != 200 {
-                let responseBody = String(data: data, encoding: .utf8)
-                log("HTTP \(httpResponse.statusCode) from Ollama server. Body: \(responseBody ?? "nil")", type: .error)
-                throw OpenAIError.invalidResponse(statusCode: httpResponse.statusCode, responseBody: responseBody)
-            }
-
-            let modelResponse = try JSONDecoder().decode(OllamaModelsResponse.self, from: data)
-            log("Successfully fetched \(modelResponse.models.count) models from Ollama")
-            return modelResponse.models.map { $0.name }
-        } catch let error as DecodingError {
-            log("Failed to decode Ollama models response: \(error.localizedDescription)", type: .error)
-            throw OpenAIError.responseDecodingError(underlyingError: error)
-        } catch let error as OpenAIError {
-            throw error
-        } catch {
-            log("Failed to fetch Ollama models: \(error.localizedDescription)", type: .error)
-            throw OpenAIError.networkError(underlyingError: error)
+    static func fetchModels(
+        serverURL: String = AIModelConstants.defaultOllamaURL,
+        session: URLSession = .shared
+    ) async throws -> [String] {
+        guard let baseURL = URL(string: serverURL) else {
+            throw AIServiceError.invalidURL(serverURL)
         }
+
+        let request = URLRequest(url: modelsEndpoint(baseURL: baseURL))
+        let response = try await AITransport.send(request, as: ModelsResponse.self, session: session)
+        return response.models.map(\.name)
     }
 
     func improveText(_ text: String) async throws -> String {
-        log("Starting Ollama text improvement request")
+        guard let baseURL else {
+            throw AIServiceError.invalidURL(serverURL)
+        }
 
-        let endpoint = OpenAIClient.chatEndpoint(for: .ollama, baseURL: baseURL)
-        var request = URLRequest(url: endpoint)
+        var request = URLRequest(url: Self.chatEndpoint(baseURL: baseURL))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            OllamaRequest(
+                model: model,
+                prompt: TextImprovementInstructions.systemPrompt(customPrompt: prompt),
+                text: text
+            )
+        )
 
-        let payload: [String: Any] = [
-            "model": model,
-            "messages": [
-                [
-                    "role": "system",
-                    "content": basePrompt
-                ],
-                [
-                    "role": "user",
-                    "content": text
-                ]
-            ],
-            "stream": false,
-            "options": [
-                "temperature": 0.7
-            ]
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-            log("Ollama request payload prepared")
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-            log("Received response from Ollama service")
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                log("Error: Invalid response type from Ollama server", type: .error)
-                throw OpenAIError.invalidResponse(statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0, responseBody: "Response was not HTTPURLResponse")
-            }
-
-            if httpResponse.statusCode != 200 {
-                let responseBody = String(data: data, encoding: .utf8)
-                log("HTTP Error: \(httpResponse.statusCode). Body: \(responseBody ?? "nil")", type: .error)
-                throw OpenAIError.invalidResponse(statusCode: httpResponse.statusCode, responseBody: responseBody)
-            }
-
-            log("Parsing Ollama response")
-            let apiResponse = try JSONDecoder().decode(OllamaChatResponse.self, from: data)
-
-            let finalContent = apiResponse.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
-            log("Successfully extracted improved text (length: \(finalContent.count))")
-            return finalContent
-        } catch let error as DecodingError {
-            log("Error decoding Ollama response: \(error.localizedDescription)", type: .error)
-            throw OpenAIError.responseDecodingError(underlyingError: error)
-        } catch let error as OpenAIError {
-            throw error
-        } catch {
-            log("Error during Ollama request: \(error.localizedDescription)", type: .error)
-            throw OpenAIError.networkError(underlyingError: error)
+        log("Sending Ollama request with model \(model)")
+        let response = try await AITransport.send(request, as: OllamaResponse.self, session: session)
+        let content = response.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty else {
+            throw AIServiceError.emptyResponse
         }
+        guard !TextImprovementInstructions.isRefusal(content) else {
+            throw AIServiceError.refusal(content)
+        }
+        return content
     }
 }
 
-struct OllamaChatResponse: Codable {
-    struct Message: Codable {
+private struct OllamaRequest: Encodable {
+    struct Message: Encodable {
         let role: String
+        let content: String
+    }
+
+    struct Options: Encodable {
+        let temperature = 0.7
+    }
+
+    let model: String
+    let messages: [Message]
+    let stream = false
+    let options = Options()
+
+    init(model: String, prompt: String, text: String) {
+        self.model = model
+        self.messages = [
+            Message(role: "system", content: prompt),
+            Message(role: "user", content: text)
+        ]
+    }
+}
+
+private struct OllamaResponse: Decodable {
+    struct Message: Decodable {
         let content: String
     }
 
     let message: Message
 }
 
-struct OllamaModelsResponse: Codable {
-    struct Model: Codable {
+private struct ModelsResponse: Decodable {
+    struct Model: Decodable {
         let name: String
     }
 

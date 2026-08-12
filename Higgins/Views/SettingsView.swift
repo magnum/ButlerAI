@@ -1,266 +1,253 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var settings: SettingsService
-    @State private var availableModels: [String] = []
-    @State private var isLoadingModels: Bool = false
-    @State private var errorMessage: String = ""
-    @State private var showingAddPromptModal: Bool = false
-    @State private var confirmDeletePrompt: Bool = false
-    @State private var newPromptName: String = ""
-    @State private var showingRenamePromptModal: Bool = false
-    @State private var renamePromptName: String = ""
+    @Bindable var settings: SettingsService
 
     var body: some View {
         Form {
-            Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    Picker("AI Backend", selection: $settings.aiBackend) {
-                        ForEach(AIBackendType.allCases) { backendType in
-                            Text(backendType.displayName).tag(backendType)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: settings.aiBackend) { _, newValue in
-                        if newValue == .ollama {
-                            Task {
-                                await fetchOllamaModels()
-                            }
-                        } else {
-                            // Reset to default OpenAI model when switching back
-                            settings.selectedModel = AIModelConstants.defaultOpenAIModel
-                        }
-                    }
-
-                    if settings.aiBackend == .openAI {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("OpenAI API Key")
-                                .font(.headline)
-                            SecureField("Enter your API key", text: $settings.openaiKey)
-                                .textFieldStyle(.roundedBorder)
-
-                            Text("OpenAI Base URL")
-                                .font(.headline)
-                            TextField("https://api.openai.com/v1", text: $settings.openAIBaseURL)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                    } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Ollama Server URL")
-                                .font(.headline)
-                            TextField("Server URL", text: $settings.ollamaURL)
-                                .textFieldStyle(.roundedBorder)
-                            
-                            Text("Model")
-                                .font(.headline)
-                            if isLoadingModels {
-                                ProgressView("Loading models...")
-                            } else {
-                                Picker("Model", selection: $settings.selectedModel) {
-                                    ForEach(availableModels, id: \.self) { model in
-                                        Text(model).tag(model)
-                                    }
-                                }
-                                .disabled(availableModels.isEmpty)
-                                
-                                if !errorMessage.isEmpty {
-                                    Text(errorMessage)
-                                        .foregroundColor(.red)
-                                        .font(.caption)
-                                }
-                                
-                                Button("Refresh Models") {
-                                    Task {
-                                        await fetchOllamaModels()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(alignment: .center, spacing: 8) {
-                            Text("Prompts")
-                                .font(.headline)
-
-                            Picker("", selection: Binding(
-                                get: { settings.currentPromptIndex },
-                                set: { newIndex in settings.selectPrompt(at: newIndex) }
-                            )) {
-                                ForEach(Array(settings.promptNames.enumerated()), id: \.offset) { index, name in
-                                    Text(name.isEmpty ? (index == 0 ? "default" : "prompt \(index)") : name).tag(index)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .frame(maxWidth: .infinity)
-
-                            HStack(spacing: 8) {
-                                Button {
-                                    renamePromptName = settings.promptNames.indices.contains(settings.currentPromptIndex) ? settings.promptNames[settings.currentPromptIndex] : ""
-                                    showingRenamePromptModal = true
-                                } label: {
-                                    Image(systemName: "pencil")
-                                        .frame(width: 24, height: 24)
-                                }
-                                .buttonStyle(.bordered)
-                                .help("Rename selected prompt")
-
-                                Button {
-                                    showingAddPromptModal = true
-                                } label: {
-                                    Image(systemName: "plus")
-                                        .frame(width: 24, height: 24)
-                                }
-                                .buttonStyle(.bordered)
-                                .help("Add new prompt")
-
-                                Button {
-                                    confirmDeletePrompt = true
-                                } label: {
-                                    Image(systemName: "minus")
-                                        .frame(width: 24, height: 24)
-                                }
-                                .buttonStyle(.bordered)
-                                .help("Delete selected prompt")
-                                .disabled(settings.prompts.count <= 1)
-                            }
-                        }
-
-                        TextEditor(text: Binding(
-                            get: { settings.improvementPrompt },
-                            set: { newValue in
-                                if settings.prompts.indices.contains(settings.currentPromptIndex) {
-                                    settings.prompts[settings.currentPromptIndex] = newValue
-                                }
-                            }
-                        ))
-                        .font(.body)
-                        .frame(minHeight: 140)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                        )
-                    }
-                }
-            }
-            .padding()
-            
-            Section {
-              VStack(alignment: .leading, spacing: 8) {
-                    Text("Keyboard shortcut2")
-                        .font(.headline)
-                    HStack(spacing: 8) {
-                        Text("⌃⌥⌘C")
-                            .padding(4)
-                            .background(Color.secondary.opacity(0.1))
-                            .cornerRadius(4)
-                        Text("Improve selected text")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding()
+            AISettingsSection(settings: settings)
+            PromptSettingsSection(settings: settings)
+            ShortcutSettingsSection()
         }
-        .frame(width: 400)
-        .sheet(isPresented: $showingAddPromptModal) {
-            let trimmedName = newPromptName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let duplicate = settings.promptNames.contains(where: { $0.caseInsensitiveCompare(trimmedName) == .orderedSame })
-            let empty = trimmedName.isEmpty
-            
-            VStack(alignment: .leading, spacing: 12) {
-                Text("New Prompt")
-                    .font(.headline)
-                TextField("Prompt name", text: $newPromptName)
-                    .textFieldStyle(.roundedBorder)
-                if empty {
-                    Text("Name cannot be empty")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                } else if duplicate {
-                    Text("A prompt with this name already exists")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                HStack {
-                    Spacer()
-                    Button("Cancel") {
-                        showingAddPromptModal = false
-                        newPromptName = ""
-                    }
-                    Button("OK") {
-                        let content = settings.improvementPrompt
-                        settings.addPrompt(named: trimmedName.isEmpty ? "untitled" : trimmedName, withContent: content)
-                        showingAddPromptModal = false
-                        newPromptName = ""
-                    }
-                    .disabled(empty || duplicate)
-                }
-            }
-            .padding()
-            .frame(width: 360)
-        }
-        .sheet(isPresented: $showingRenamePromptModal) {
-            let trimmedName = renamePromptName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let duplicate = settings.promptNames.contains(where: { $0.caseInsensitiveCompare(trimmedName) == .orderedSame }) && (settings.promptNames.indices.contains(settings.currentPromptIndex) ? settings.promptNames[settings.currentPromptIndex].caseInsensitiveCompare(trimmedName) != .orderedSame : true)
-            let empty = trimmedName.isEmpty
+        .formStyle(.grouped)
+        .frame(width: 440)
+    }
+}
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Rename Prompt")
-                    .font(.headline)
-                TextField("Prompt name", text: $renamePromptName)
-                    .textFieldStyle(.roundedBorder)
-                if empty {
-                    Text("Name cannot be empty")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                } else if duplicate {
-                    Text("A prompt with this name already exists")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                HStack {
-                    Spacer()
-                    Button("Cancel") {
-                        showingRenamePromptModal = false
-                        renamePromptName = ""
-                    }
-                    Button("OK") {
-                        settings.renameCurrentPrompt(to: trimmedName)
-                        showingRenamePromptModal = false
-                        renamePromptName = ""
-                    }
-                    .disabled(empty || duplicate)
+private struct AISettingsSection: View {
+    @Bindable var settings: SettingsService
+    @State private var availableModels: [String] = []
+    @State private var isLoadingModels = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        Section("AI Service") {
+            Picker("Backend", selection: $settings.aiBackend) {
+                ForEach(AIBackendType.allCases) { backend in
+                    Text(backend.displayName).tag(backend)
                 }
             }
-            .padding()
-            .frame(width: 360)
+            .pickerStyle(.segmented)
+
+            if settings.aiBackend == .openAI {
+                SecureField("API Key", text: $settings.openAIKey)
+                TextField("Base URL", text: $settings.openAIBaseURL)
+            } else {
+                TextField("Server URL", text: $settings.ollamaURL)
+
+                if isLoadingModels {
+                    ProgressView("Loading models…")
+                } else {
+                    Picker("Model", selection: $settings.selectedModel) {
+                        ForEach(availableModels, id: \.self) { model in
+                            Text(model).tag(model)
+                        }
+                    }
+                    .disabled(availableModels.isEmpty)
+
+                    Button("Refresh Models", systemImage: "arrow.clockwise") {
+                        Task { await fetchModels() }
+                    }
+                }
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
         }
-        .alert("Delete selected prompt?", isPresented: $confirmDeletePrompt) {
+        .task(id: "\(settings.aiBackend.rawValue):\(settings.ollamaURL)") {
+            guard settings.aiBackend == .ollama else { return }
+            await fetchModels()
+        }
+    }
+
+    private func fetchModels() async {
+        isLoadingModels = true
+        errorMessage = nil
+        defer { isLoadingModels = false }
+
+        do {
+            availableModels = try await OllamaClient.fetchModels(serverURL: settings.ollamaURL)
+            if let firstModel = availableModels.first,
+               !availableModels.contains(settings.selectedModel) {
+                settings.selectedModel = firstModel
+            }
+        } catch {
+            availableModels = []
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+private struct PromptSettingsSection: View {
+    @Bindable var settings: SettingsService
+    @State private var editor: PromptEditor?
+    @State private var showsDeleteConfirmation = false
+
+    var body: some View {
+        Section("Prompt") {
+            HStack {
+                Picker("Active Prompt", selection: promptSelection) {
+                    ForEach(settings.prompts) { prompt in
+                        Text(prompt.name).tag(prompt.id)
+                    }
+                }
+
+                Button("Rename Prompt", systemImage: "pencil") {
+                    editor = .rename
+                }
+                .labelStyle(.iconOnly)
+                .help("Rename selected prompt")
+
+                Button("Add Prompt", systemImage: "plus") {
+                    editor = .add
+                }
+                .labelStyle(.iconOnly)
+                .help("Add prompt")
+
+                Button("Delete Prompt", systemImage: "minus", role: .destructive) {
+                    showsDeleteConfirmation = true
+                }
+                .labelStyle(.iconOnly)
+                .help("Delete selected prompt")
+                .disabled(settings.prompts.count == 1)
+            }
+
+            TextEditor(text: $settings.improvementPrompt)
+                .font(.body)
+                .frame(minHeight: 180)
+                .padding(4)
+                .background(.background)
+                .clipShape(.rect(cornerRadius: 6))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(.separator, lineWidth: 1)
+                }
+        }
+        .sheet(item: $editor) { editor in
+            PromptNameEditor(
+                title: editor == .add ? "New Prompt" : "Rename Prompt",
+                initialName: editor == .add ? "" : settings.selectedPromptName,
+                existingNames: existingNames(for: editor)
+            ) { name in
+                switch editor {
+                case .add:
+                    settings.addPrompt(named: name, content: settings.improvementPrompt)
+                case .rename:
+                    settings.renameSelectedPrompt(to: name)
+                }
+                self.editor = nil
+            }
+        }
+        .alert("Delete selected prompt?", isPresented: $showsDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
-                settings.removeCurrentPrompt()
+                settings.removeSelectedPrompt()
             }
         } message: {
             Text("This action cannot be undone.")
         }
     }
-    
-    private func fetchOllamaModels() async {
-        isLoadingModels = true
-        errorMessage = ""
-        
-        do {
-            availableModels = try await OllamaClient.fetchModels(serverURL: settings.ollamaURL)
-            if !availableModels.isEmpty && !availableModels.contains(settings.selectedModel) {
-                settings.selectedModel = availableModels[0]
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-            availableModels = []
+
+    private var promptSelection: Binding<SettingsService.Prompt.ID> {
+        Binding(
+            get: { settings.selectedPromptID },
+            set: settings.selectPrompt(id:)
+        )
+    }
+
+    private func existingNames(for editor: PromptEditor) -> [String] {
+        settings.prompts.compactMap { prompt in
+            editor == .rename && prompt.id == settings.selectedPromptID ? nil : prompt.name
         }
-        
-        isLoadingModels = false
+    }
+
+    private enum PromptEditor: String, Identifiable {
+        case add
+        case rename
+
+        var id: Self { self }
+    }
+}
+
+private struct PromptNameEditor: View {
+    let title: LocalizedStringResource
+    let existingNames: [String]
+    let onSave: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var name: String
+
+    init(
+        title: LocalizedStringResource,
+        initialName: String,
+        existingNames: [String],
+        onSave: @escaping (String) -> Void
+    ) {
+        self.title = title
+        self.existingNames = existingNames
+        self.onSave = onSave
+        _name = State(initialValue: initialName)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+            TextField("Prompt name", text: $name)
+
+            if let validationMessage {
+                Text(validationMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) {
+                    dismiss()
+                }
+                Button("Save") {
+                    onSave(trimmedName)
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(validationMessage != nil)
+            }
+        }
+        .padding()
+        .frame(width: 360)
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var validationMessage: LocalizedStringResource? {
+        if trimmedName.isEmpty {
+            "Name cannot be empty."
+        } else if existingNames.contains(where: {
+            $0.caseInsensitiveCompare(trimmedName) == .orderedSame
+        }) {
+            "A prompt with this name already exists."
+        } else {
+            nil
+        }
+    }
+}
+
+private struct ShortcutSettingsSection: View {
+    var body: some View {
+        Section("Keyboard Shortcut") {
+            LabeledContent("Improve selected text") {
+                Text("⌃⌥⌘C")
+                    .monospaced()
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(.quaternary, in: .rect(cornerRadius: 4))
+            }
+        }
     }
 }
 

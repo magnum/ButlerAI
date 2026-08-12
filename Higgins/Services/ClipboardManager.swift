@@ -29,7 +29,8 @@ struct PasteboardSnapshot {
     }
 }
 
-class ClipboardManager {
+@MainActor
+final class ClipboardManager {
     enum ClipboardError: LocalizedError {
         case noTextSelected
         case textReplacementFailed
@@ -50,23 +51,11 @@ class ClipboardManager {
     func getSelectedText() async throws -> String {
         log("Attempting to get selected text")
         
-        // Save current clipboard content
         previousSnapshot = PasteboardSnapshot(pasteboard: pasteboard)
-        log("Saved previous clipboard content")
-
         let initialChangeCount = pasteboard.changeCount
-        
-        // Simulate copy command
-        let source = CGEventSource(stateID: .privateState)
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: true) // 'c' key
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: false)
-        
-        keyDown?.flags = .maskCommand
-        keyUp?.flags = .maskCommand
-        
+
         log("Simulating CMD+C to capture selection")
-        keyDown?.post(tap: .cghidEventTap)
-        keyUp?.post(tap: .cghidEventTap)
+        postCommandKey(keyCode: 0x08)
         
         let updated = await waitForPasteboardChange(from: initialChangeCount, timeout: 0.5)
         if !updated {
@@ -75,7 +64,6 @@ class ClipboardManager {
         
         guard let selectedText = pasteboard.string(forType: .string) else {
             log("No text found in clipboard", type: .warning)
-            // Restore previous clipboard content
             restorePreviousClipboard()
             throw ClipboardError.noTextSelected
         }
@@ -87,29 +75,28 @@ class ClipboardManager {
     func replaceSelectedText(with newText: String) async throws {
         log("Attempting to replace text with new content (length: \(newText.count))")
         
-        // Store new text in clipboard
         pasteboard.clearContents()
         pasteboard.setString(newText, forType: .string)
-        log("New text stored in clipboard")
-        
-        // Simulate paste command
+        defer { restorePreviousClipboard() }
+
+        log("Simulating CMD+V to paste improved text")
+        postCommandKey(keyCode: 0x09)
+        try await Task.sleep(for: .milliseconds(100))
+        log("Text replacement complete")
+    }
+
+    func restoreClipboard() {
+        restorePreviousClipboard()
+    }
+
+    private func postCommandKey(keyCode: CGKeyCode) {
         let source = CGEventSource(stateID: .privateState)
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true) // 'v' key
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
-        
+        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
+        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
         keyDown?.flags = .maskCommand
         keyUp?.flags = .maskCommand
-        
-        log("Simulating CMD+V to paste improved text")
         keyDown?.post(tap: .cghidEventTap)
         keyUp?.post(tap: .cghidEventTap)
-        
-        // Wait a bit for the paste to complete
-        try await Task.sleep(nanoseconds: 100_000_000)
-
-        restorePreviousClipboard()
-        
-        log("Text replacement complete")
     }
 
     private func restorePreviousClipboard() {
@@ -126,7 +113,7 @@ class ClipboardManager {
             if pasteboard.changeCount != initialChangeCount {
                 return true
             }
-            try? await Task.sleep(nanoseconds: 50_000_000)
+            try? await Task.sleep(for: .milliseconds(50))
         }
         return false
     }

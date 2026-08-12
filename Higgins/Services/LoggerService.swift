@@ -1,71 +1,55 @@
 import Foundation
-import SwiftUI
+import Observation
 
-func log(_ message: String, type: LoggerService.LogType = .info, file: String = #file, function: String = #function, line: Int = #line) {
-    LoggerService.shared.log(message, type: type, file: file, function: function, line: line)
+func log(
+    _ message: String,
+    type: LoggerService.LogType = .info,
+    file: String = #fileID,
+    line: Int = #line
+) {
+    Task { @MainActor in
+        LoggerService.shared.record(message, type: type, file: file, line: line)
+    }
 }
 
-class LoggerService: ObservableObject {
-    @Published var logs: [LogEntry] = []
-    private let dateFormatter: DateFormatter
-    static let shared = LoggerService()
-    
-    struct LogEntry: Identifiable, Equatable {
-        let id = UUID()
+@MainActor
+@Observable
+final class LoggerService {
+    struct LogEntry: Equatable, Identifiable {
+        let id: UUID
         let timestamp: Date
         let message: String
         let type: LogType
-        
-        static func == (lhs: LogEntry, rhs: LogEntry) -> Bool {
-            lhs.id == rhs.id
-        }
     }
-    
-    enum LogType: String {
+
+    enum LogType: String, CaseIterable, Equatable, Identifiable {
         case info = "INFO"
         case warning = "WARNING"
         case error = "ERROR"
-        
-        var color: Color {
-            switch self {
-            case .info: return .primary
-            case .warning: return .orange
-            case .error: return .red
-            }
+
+        var id: Self { self }
+    }
+
+    static let shared = LoggerService()
+
+    private(set) var logs: [LogEntry] = []
+
+    private init() {}
+
+    func record(_ message: String, type: LogType = .info, file: String, line: Int) {
+        let entry = LogEntry(id: UUID(), timestamp: Date(), message: message, type: type)
+        logs.append(entry)
+        print("[\(entry.timestamp.formatted(.iso8601))] [\(type.rawValue)] [\(file):\(line)] \(message)")
+    }
+
+    func clear() {
+        logs.removeAll()
+    }
+
+    func export() -> String {
+        logs.map { entry in
+            "[\(entry.timestamp.formatted(.iso8601))] [\(entry.type.rawValue)] \(entry.message)"
         }
-    }
-    
-    private init() {
-        self.dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-    }
-    
-    func log(_ message: String, type: LogType = .info, file: String = #file, function: String = #function, line: Int = #line) {
-        let entry = LogEntry(
-            timestamp: Date(),
-            message: message,
-            type: type
-        )
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.logs.append(entry)
-        }
-        
-        let timestamp = dateFormatter.string(from: entry.timestamp)
-        let fileName = (file as NSString).lastPathComponent
-        print("[\(timestamp)] [\(type.rawValue)] [\(fileName):\(line)] \(message)")
-    }
-    
-    func clearLogs() {
-        DispatchQueue.main.async { [weak self] in
-            self?.logs.removeAll()
-        }
-    }
-    
-    func exportLogs() -> String {
-        return logs.map { entry in
-            let timestamp = dateFormatter.string(from: entry.timestamp)
-            return "[\(timestamp)] [\(entry.type.rawValue)] \(entry.message)"
-        }.joined(separator: "\n")
+        .joined(separator: "\n")
     }
 }

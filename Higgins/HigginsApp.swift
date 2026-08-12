@@ -1,256 +1,181 @@
-import SwiftUI
 import AppKit
-import Combine
+import Observation
+import SwiftUI
 
 @MainActor
-class AppState: ObservableObject {
+@Observable
+final class AppState {
     private var hotkeyManager: HotkeyManager?
     private let clipboardManager = ClipboardManager()
-    private var textImprover: TextImproving?
-    private var languageService: LanguageService?
-    @Published var isProcessing: Bool = false
-    
-    let settingsService = SettingsService()
-    private var cancellables = Set<AnyCancellable>()
-    var openSettingsHandler: (() -> Void)?
-    
-    @Published var lastError: String? {
-        didSet {
-            if let error = self.lastError {
-                log(error, type: .error)
-            }
-        }
-    }
-    
+
+    let settings = SettingsService()
+    private(set) var isProcessing = false
+    private(set) var lastError: String?
+    var openSettings: (() -> Void)?
+
     init() {
-        log("Initializing HigginsAI")
-        self.updateAIService() // Initial call
-        if RuntimeEnvironment.isRunningTests {
-            log("Skipping hotkey setup during tests")
-        } else {
-            self.setupHotkeyManager()
+        log("Starting HigginsAI")
+        guard !RuntimeEnvironment.isRunningTests else {
+            log("Skipping global hotkey setup during tests")
+            return
         }
-        
-        settingsService.objectWillChange
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    log("SettingsService changed, updating AI Service.")
-                    self?.updateAIService()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func updateAIService() {
-        let client: TextImproving
-        switch settingsService.aiBackend {
-        case .openAI:
-            client = OpenAIClient(
-                apiKey: settingsService.openaiKey,
-                prompt: settingsService.improvementPrompt,
-                model: settingsService.selectedModel,
-                serverURL: settingsService.openAIBaseURL
-            )
-        case .ollama:
-            client = OllamaClient(
-                prompt: settingsService.improvementPrompt,
-                model: settingsService.selectedModel,
-                serverURL: settingsService.ollamaURL
-            )
-        }
-
-        textImprover = client
-        languageService = LanguageService(textImprover: client)
-        log("AI service updated (Backend: \(settingsService.aiBackend.rawValue), Model: \(settingsService.selectedModel))")
-    }
-    
-    /// Returns true if Accessibility is granted. If not, registers the app in the
-    /// Accessibility list and — when `showGuidance` is true — shows a reliable
-    /// alert that opens System Settings. Simulating Cmd+C / Cmd+V to read and
-    /// replace text requires this permission.
-    @discardableResult
-    private func ensureAccessibilityPermission(showGuidance: Bool = true) -> Bool {
-        if AXIsProcessTrusted() { return true }
-
-        log("Accessibility not granted", type: .warning)
-        // Register the app in the Accessibility list (and trigger the native
-        // prompt if the system chooses to show it).
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-        AXIsProcessTrustedWithOptions(options)
-
-        guard showGuidance else { return false }
-
-        let alert = NSAlert()
-        alert.messageText = "Accesso Accessibilità richiesto"
-        alert.informativeText = """
-            HigginsAI ha bisogno dell'accesso Accessibilità per leggere il testo selezionato e incollare la versione migliorata.
-
-            Attivalo in Impostazioni di Sistema ▸ Privacy e sicurezza ▸ Accessibilità, poi premi di nuovo ⌃⌥⌘C.
-            """
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Apri Impostazioni di Sistema")
-        alert.addButton(withTitle: "Più tardi")
-        NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn {
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            }
-        }
-        return false
+        setupHotkey()
     }
 
-    private func setupHotkeyManager() {
-        log("Setting up hotkey (⌃⌥⌘C)")
+    private func setupHotkey() {
         hotkeyManager = HotkeyManager { [weak self] in
-            log("Hotkey triggered")
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                // The Carbon hot key fires without Accessibility, but simulating
-                // Cmd+C / Cmd+V to read and replace text does require it. Ask the
-                // user if it hasn't been granted yet.
-                guard self.ensureAccessibilityPermission() else {
-                    log("Aborting: waiting for the user to grant Accessibility, then press ⌃⌥⌘C again")
-                    return
-                }
-                // Run preflight and improvement entirely asynchronously to avoid blocking the main thread
-                Task { [weak self] in
-                    guard let self = self else { return }
-                    do {
-                        _ = try await self.clipboardManager.getSelectedText()
-                        await self.improveSelectedText()
-                    } catch let error as ClipboardManager.ClipboardError {
-                        await MainActor.run {
-                            let warn = NSAlert()
-                            warn.messageText = "Nessun testo selezionato"
-                            warn.informativeText = error.localizedDescription
-                            warn.alertStyle = .warning
-                            warn.addButton(withTitle: "OK")
-                            NSApp.activate(ignoringOtherApps: true)
-                            warn.runModal()
-                        }
-                    } catch {
-                        await MainActor.run {
-                            let warn = NSAlert()
-                            warn.messageText = "Errore inatteso"
-                            warn.informativeText = "Si è verificato un errore durante la lettura del testo selezionato. Riprova."
-                            warn.alertStyle = .warning
-                            warn.addButton(withTitle: "OK")
-                            NSApp.activate(ignoringOtherApps: true)
-                            warn.runModal()
-                        }
-                    }
-                }
-            }
+            self?.handleHotkey()
         }
 
-        // Ask for Accessibility up-front so the user can grant it before the
-        // first shortcut use. Deferred so it doesn't block app launch.
         DispatchQueue.main.async { [weak self] in
-            self?.ensureAccessibilityPermission()
+            self?.requestAccessibilityPermission(showGuidance: true)
+        }
+    }
+
+    private func handleHotkey() {
+        guard !isProcessing else { return }
+        guard requestAccessibilityPermission(showGuidance: true) else { return }
+
+        Task {
+            await improveSelectedText()
         }
     }
 
     private func improveSelectedText() async {
-        log("Starting text improvement")
-        do {
-            isProcessing = true
-            let selectedText = try await clipboardManager.getSelectedText()
-            log("Selected text: \(selectedText.prefix(50))...")
-            
-            guard let improved = try await languageService?.improveWithLanguageHandling(selectedText) else {
-                let errorMessage = settingsService.aiBackend == .openAI ?
-                    "OpenAI API key not configured." :
-                    "Ollama connection failed. Ensure Ollama is running and the URL is correct in settings."
-                lastError = errorMessage
-                let alert = NSAlert()
-                alert.messageText = settingsService.aiBackend == .openAI ?
-                    "OpenAI API Key Required" :
-                    "Ollama Connection Error"
-                alert.informativeText = settingsService.aiBackend == .openAI ?
-                    "Please open Settings and enter your OpenAI API key to use HigginsAI." :
-                    "Please make sure Ollama is running and check your server URL in Settings."
-                alert.alertStyle = .warning
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
-                
-                NSApp.activate(ignoringOtherApps: true)
-                if alert.runModal() == .alertFirstButtonReturn {
-                    if let openSettingsHandler {
-                        openSettingsHandler()
-                    } else {
-                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    }
-                }
-                isProcessing = false
-                return
+        isProcessing = true
+        var shouldRestoreClipboard = false
+        defer {
+            if shouldRestoreClipboard {
+                clipboardManager.restoreClipboard()
             }
-            log("Received improved text from AI service")
-            
-            try await clipboardManager.replaceSelectedText(with: improved)
-            log("Successfully replaced text")
+            isProcessing = false
+        }
+
+        do {
+            let selectedText = try await clipboardManager.getSelectedText()
+            shouldRestoreClipboard = true
+            log("Captured selected text (\(selectedText.count) characters)")
+
+            let improvedText = try await makeTextImprover().improveText(selectedText)
+            try await clipboardManager.replaceSelectedText(with: improvedText)
+            shouldRestoreClipboard = false
+
             lastError = nil
-            isProcessing = false
-        } catch let error as OpenAIError {
-            isProcessing = false
-            log("AI service error: \(error.localizedDescription)", type: .error)
-            lastError = error.localizedDescription
-            let alert = NSAlert()
-            alert.messageText = "\(settingsService.aiBackend.displayName) Error" // Using displayName from enum
-            alert.informativeText = error.localizedDescription
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
-            NSApp.activate(ignoringOtherApps: true)
-            alert.runModal()
+            log("Text replaced successfully")
         } catch let error as ClipboardManager.ClipboardError {
-            isProcessing = false
-            log("Clipboard error: \(error.localizedDescription)", type: .error)
-            lastError = error.localizedDescription
-            let alert = NSAlert()
-            alert.messageText = "No Text Selected"
-            alert.informativeText = "Please select some text to improve."
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
-            NSApp.activate(ignoringOtherApps: true)
-            alert.runModal()
+            presentError(
+                title: "No Text Selected",
+                message: error.localizedDescription
+            )
+        } catch let error as AIServiceError {
+            presentError(
+                title: "\(settings.aiBackend.displayName) Error",
+                message: error.localizedDescription,
+                offersSettings: error.isConfigurationError
+            )
         } catch {
-            log("Unexpected error: \(error)", type: .error)
-            lastError = "An unexpected error occurred"
-            isProcessing = false
+            presentError(
+                title: "Unexpected Error",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    private func makeTextImprover() -> any TextImproving {
+        switch settings.aiBackend {
+        case .openAI:
+            OpenAIClient(
+                apiKey: settings.openAIKey,
+                prompt: settings.improvementPrompt,
+                model: settings.selectedModel,
+                serverURL: settings.openAIBaseURL
+            )
+        case .ollama:
+            OllamaClient(
+                prompt: settings.improvementPrompt,
+                model: settings.selectedModel,
+                serverURL: settings.ollamaURL
+            )
+        }
+    }
+
+    @discardableResult
+    private func requestAccessibilityPermission(showGuidance: Bool) -> Bool {
+        guard !AXIsProcessTrusted() else { return true }
+
+        let options: NSDictionary = [
+            kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true
+        ]
+        AXIsProcessTrustedWithOptions(options)
+        guard showGuidance else { return false }
+
+        let alert = NSAlert()
+        alert.messageText = "Accessibility Access Required"
+        alert.informativeText = "HigginsAI needs Accessibility access to copy and replace selected text. Enable it in System Settings → Privacy & Security → Accessibility, then use ⌃⌥⌘C again."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Later")
+        NSApp.activate(ignoringOtherApps: true)
+
+        if alert.runModal() == .alertFirstButtonReturn,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+        return false
+    }
+
+    private func presentError(title: String, message: String, offersSettings: Bool = false) {
+        lastError = message
+        log(message, type: .error)
+
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        if offersSettings {
+            alert.addButton(withTitle: "Open Settings")
+            alert.addButton(withTitle: "Cancel")
+        } else {
+            alert.addButton(withTitle: "OK")
+        }
+
+        NSApp.activate(ignoringOtherApps: true)
+        if offersSettings, alert.runModal() == .alertFirstButtonReturn {
+            if let openSettings {
+                openSettings()
+            } else {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+        } else if !offersSettings {
+            alert.runModal()
+        }
+    }
+}
+
+private extension AIServiceError {
+    var isConfigurationError: Bool {
+        switch self {
+        case .missingAPIKey, .invalidURL:
+            true
+        default:
+            false
         }
     }
 }
 
 @main
 struct HigginsApp: App {
-    @StateObject private var appState = AppState()
-    
+    @State private var appState = AppState()
+
     var body: some Scene {
         MenuBarExtra {
             MenuContentView(appState: appState)
         } label: {
-            if appState.isProcessing {
-                Image(systemName: "clock.arrow.circlepath")
-                    .imageScale(.medium)
-                    .rotationEffect(.degrees(appState.isProcessing ? 360 : 0))
-                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: appState.isProcessing)
-            } else {
-                Image(systemName: "wand.and.stars")
-            }
+            ProcessingIcon(isProcessing: appState.isProcessing)
         }
 
         Settings {
-            SettingsView(settings: appState.settingsService)
-                .onAppear {
-                    // Activate app and bring Settings window to front regardless of other apps
-                    NSApp.activate(ignoringOtherApps: true)
-                    // Attempt to make the Settings window key and frontmost
-                    for window in NSApp.windows {
-                        if String(describing: type(of: window)).contains("NSPreferences") || window.title.contains("Settings") {
-                            window.makeKeyAndOrderFront(nil)
-                            window.orderFrontRegardless()
-                        }
-                    }
-                }
+            SettingsView(settings: appState.settings)
         }
 
         Window("HigginsAI Logs", id: "logs") {
@@ -261,27 +186,18 @@ struct HigginsApp: App {
 }
 
 struct MenuContentView: View {
-    @ObservedObject var appState: AppState
+    let appState: AppState
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Group {
-                    if appState.isProcessing {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .imageScale(.medium)
-                            .rotationEffect(.degrees(appState.isProcessing ? 360 : 0))
-                            .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: appState.isProcessing)
-                    } else {
-                        Image(systemName: "wand.and.stars")
-                    }
-                }
-                .frame(width: 18, height: 18)
-
+            Label {
                 Text("HigginsAI")
                     .font(.headline)
+            } icon: {
+                ProcessingIcon(isProcessing: appState.isProcessing)
+                    .frame(width: 18, height: 18)
             }
             .padding(.vertical, 8)
 
@@ -289,41 +205,47 @@ struct MenuContentView: View {
 
             if let error = appState.lastError {
                 Text(error)
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
                     .font(.subheadline)
                     .lineLimit(3)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal)
-
+                    .padding(8)
                 Divider()
             }
 
             Button("Show Logs") {
-                log("Opening logs from menu")
                 openWindow(id: "logs")
             }
             .keyboardShortcut("l")
-            .padding(.vertical, 4)
 
-            Button("Settings...") {
-                log("Opening settings from menu")
+            Button("Settings…") {
                 openSettings()
             }
             .keyboardShortcut(",")
-            .padding(.vertical, 4)
+
+            Divider()
 
             Button("Quit HigginsAI") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")
-            .padding(.vertical, 4)
         }
         .fixedSize()
         .onAppear {
-            appState.openSettingsHandler = {
-                openSettings()
-            }
+            appState.openSettings = { openSettings() }
         }
     }
 }
 
+private struct ProcessingIcon: View {
+    let isProcessing: Bool
+
+    var body: some View {
+        Image(systemName: isProcessing ? "clock.arrow.circlepath" : "wand.and.stars")
+            .imageScale(.medium)
+            .rotationEffect(.degrees(isProcessing ? 360 : 0))
+            .animation(
+                isProcessing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
+                value: isProcessing
+            )
+    }
+}

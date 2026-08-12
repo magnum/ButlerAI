@@ -9,7 +9,7 @@ import AppKit
 /// Accessibility permission. This lets the shortcut work immediately; the
 /// Accessibility permission is only requested later, on first actual use,
 /// when the app needs to simulate Cmd+C / Cmd+V to read and replace text.
-class HotkeyManager {
+final class HotkeyManager {
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
     private let callback: () -> Void
@@ -36,9 +36,10 @@ class HotkeyManager {
     private func registerHotkey() {
         log("Registering global hotkey ⌃⌥⌘C via Carbon (no accessibility required to detect it)")
 
-        // Install a handler for "hot key pressed" events.
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
-                                      eventKind: UInt32(kEventHotKeyPressed))
+        var eventType = EventTypeSpec(
+            eventClass: OSType(kEventClassKeyboard),
+            eventKind: UInt32(kEventHotKeyPressed)
+        )
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
         let handlerStatus = InstallEventHandler(
@@ -57,13 +58,18 @@ class HotkeyManager {
             return
         }
 
-        // Register ⌃⌥⌘C. The 'HGNS' signature identifies our hot key.
         let hotKeyID = EventHotKeyID(signature: fourCharCode("HGNS"), id: 1)
         let modifiers = UInt32(controlKey | optionKey | cmdKey)
-        let keyCode = UInt32(0x08) // 'c'
+        let keyCode = UInt32(0x08)
 
-        let status = RegisterEventHotKey(keyCode, modifiers, hotKeyID,
-                                         GetApplicationEventTarget(), 0, &hotKeyRef)
+        let status = RegisterEventHotKey(
+            keyCode,
+            modifiers,
+            hotKeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotKeyRef
+        )
         if status == noErr {
             log("Global hotkey ⌃⌥⌘C registered successfully")
         } else {

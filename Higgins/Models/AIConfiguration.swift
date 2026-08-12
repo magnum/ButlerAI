@@ -4,16 +4,20 @@ enum AIBackendType: String, CaseIterable, Identifiable {
     case openAI = "openai"
     case ollama = "ollama"
 
-    var id: String { self.rawValue }
+    var id: Self { self }
 
     var displayName: String {
         switch self {
-        case .openAI: return "OpenAI"
-        case .ollama: return "Ollama (Local)"
+        case .openAI:
+            "OpenAI"
+        case .ollama:
+            "Ollama (Local)"
         }
     }
 }
 
-struct AIModelConstants {
+enum AIModelConstants {
     static let defaultOpenAIModel = "gpt-4o-mini"
+    static let defaultOpenAIBaseURL = "https://api.openai.com/v1"
+    static let defaultOllamaURL = "http://localhost:11434"
 }

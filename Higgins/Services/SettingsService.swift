@@ -1,220 +1,205 @@
-import SwiftUI
-import Combine
+import Foundation
+import Observation
 
-class SettingsService: ObservableObject {
-    @Published var openaiKey: String = "" {
-        didSet {
-            if isLoadingOpenAIKey { return }
-            persistOpenAIKey(openaiKey)
+@MainActor
+@Observable
+final class SettingsService {
+    struct Prompt: Codable, Equatable, Identifiable {
+        let id: UUID
+        var name: String
+        var content: String
+
+        init(id: UUID = UUID(), name: String, content: String) {
+            self.id = id
+            self.name = name
+            self.content = content
         }
     }
-    @AppStorage("openaiBaseURL") var openAIBaseURL: String = "https://api.openai.com/v1"
-    @AppStorage("aiBackend") var aiBackend: AIBackendType = .openAI
-    @AppStorage("ollamaURL") var ollamaURL: String = "http://localhost:11434"
-    @AppStorage("selectedModel") var selectedModel: String = AIModelConstants.defaultOpenAIModel
-    @AppStorage("improvementPrompt") var improvementPrompt: String = """
-Please improve the following text while keeping its original meaning and tone. Preserve the original language of the text; do not translate it unless the prompt explicitly requests a translation to a specific language.
 
-Focus on:
-1. Grammar and punctuation
-2. Clarity and natural expression
-3. Professional tone while maintaining original intent
-4. Proper capitalization and sentence structure
+    static let defaultPrompt = TextImprovementInstructions.defaultPrompt
 
-If the text appears to be an AI instruction or prompt:
-- Improve its clarity and formality without executing the instruction
-- Keep the instructional intent intact
-- Format it as a polite, well-structured request
+    var openAIKey: String {
+        didSet { persistOpenAIKey() }
+    }
 
-Return only the improved text without any explanations or additional comments.
-"""
+    var openAIBaseURL: String {
+        didSet { defaults.set(openAIBaseURL, forKey: Key.openAIBaseURL) }
+    }
 
-    @AppStorage("promptsData") private var promptsData: Data = Data()
-    @AppStorage("promptNamesData") private var promptNamesData: Data = Data()
-    @AppStorage("currentPromptIndex") var currentPromptIndex: Int = 0 {
+    var aiBackend: AIBackendType {
         didSet {
-            // Keep improvementPrompt in sync and notify listeners so AI client can be rebuilt
-            if prompts.indices.contains(currentPromptIndex) {
-                improvementPrompt = prompts[currentPromptIndex]
-            } else if !prompts.isEmpty {
-                currentPromptIndex = 0
-                improvementPrompt = prompts[0]
+            defaults.set(aiBackend.rawValue, forKey: Key.aiBackend)
+            if aiBackend == .openAI, oldValue != .openAI {
+                selectedModel = AIModelConstants.defaultOpenAIModel
             }
-            objectWillChange.send()
         }
     }
 
-    @Published var prompts: [String] = [] {
-        didSet {
-            persistPrompts()
-            // Keep improvementPrompt in sync with current selection
-            if prompts.indices.contains(currentPromptIndex) {
-                improvementPrompt = prompts[currentPromptIndex]
-            }
-            // Ensure promptNames matches prompts count
-            if promptNames.count < prompts.count {
-                let startIndex = promptNames.count
-                for i in startIndex..<prompts.count {
-                    if i == 0 {
-                        promptNames.append("default")
-                    } else {
-                        promptNames.append("prompt \(i)")
-                    }
-                }
-            } else if promptNames.count > prompts.count {
-                promptNames = Array(promptNames.prefix(prompts.count))
-            }
-            objectWillChange.send()
+    var ollamaURL: String {
+        didSet { defaults.set(ollamaURL, forKey: Key.ollamaURL) }
+    }
+
+    var selectedModel: String {
+        didSet { defaults.set(selectedModel, forKey: Key.selectedModel) }
+    }
+
+    private(set) var prompts: [Prompt] {
+        didSet { persistPrompts() }
+    }
+
+    private(set) var selectedPromptID: Prompt.ID {
+        didSet { defaults.set(selectedPromptID.uuidString, forKey: Key.selectedPromptID) }
+    }
+
+    var selectedPromptIndex: Int {
+        prompts.firstIndex { $0.id == selectedPromptID } ?? 0
+    }
+
+    var selectedPromptName: String {
+        prompts[selectedPromptIndex].name
+    }
+
+    var improvementPrompt: String {
+        get { prompts[selectedPromptIndex].content }
+        set {
+            prompts[selectedPromptIndex].content = newValue
         }
     }
 
-    @Published var promptNames: [String] = [] {
-        didSet {
-            persistPromptNames()
-            objectWillChange.send()
-        }
-    }
+    @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let keychain: KeychainService
+    @ObservationIgnored private var isLoadingAPIKey = false
 
-    private let keychain = KeychainService()
-    private let openAIKeyKeychainKey = "openaiKey"
-    private var isLoadingOpenAIKey = false
+    init(
+        defaults: UserDefaults = .standard,
+        keychain: KeychainService = KeychainService()
+    ) {
+        self.defaults = defaults
+        self.keychain = keychain
+        self.openAIBaseURL = defaults.string(forKey: Key.openAIBaseURL)
+            ?? AIModelConstants.defaultOpenAIBaseURL
+        self.aiBackend = defaults.string(forKey: Key.aiBackend)
+            .flatMap(AIBackendType.init(rawValue:)) ?? .openAI
+        self.ollamaURL = defaults.string(forKey: Key.ollamaURL)
+            ?? AIModelConstants.defaultOllamaURL
+        self.selectedModel = defaults.string(forKey: Key.selectedModel)
+            ?? AIModelConstants.defaultOpenAIModel
 
-    init() {
+        let loadedPrompts = Self.loadPrompts(from: defaults)
+        let effectivePrompts = loadedPrompts.isEmpty
+            ? [Prompt(name: "Default", content: Self.defaultPrompt)]
+            : loadedPrompts
+        let storedID = defaults.string(forKey: Key.selectedPromptID).flatMap(UUID.init(uuidString:))
+        let effectivePromptID = storedID.flatMap { id in
+            effectivePrompts.contains { $0.id == id } ? id : nil
+        } ?? effectivePrompts[0].id
+
+        self.prompts = effectivePrompts
+        self.selectedPromptID = effectivePromptID
+        self.openAIKey = ""
+
         loadOpenAIKey()
-        log("SettingsService initialized")
+        persistPrompts()
+        log("Settings loaded")
+    }
 
-        loadPrompts()
-        loadPromptNames()
-        if prompts.isEmpty {
-            prompts = [improvementPrompt]
-            promptNames = ["default"]
-            currentPromptIndex = 0
-            persistPrompts()
-            persistPromptNames()
-        } else {
-            // Ensure improvementPrompt reflects the selected prompt on launch
-            if prompts.indices.contains(currentPromptIndex) {
-                improvementPrompt = prompts[currentPromptIndex]
-            } else {
-                currentPromptIndex = 0
-                improvementPrompt = prompts[0]
-            }
-            // Ensure promptNames matches prompts count
-            if promptNames.isEmpty || promptNames.count != prompts.count {
-                var newNames: [String] = []
-                for i in 0..<prompts.count {
-                    if i == 0 {
-                        newNames.append("default")
-                    } else {
-                        newNames.append("prompt \(i)")
-                    }
-                }
-                promptNames = newNames
-                persistPromptNames()
-            }
+    func selectPrompt(id: Prompt.ID) {
+        guard prompts.contains(where: { $0.id == id }) else { return }
+        selectedPromptID = id
+    }
+
+    func addPrompt(named name: String, content: String) {
+        let prompt = Prompt(name: name, content: content)
+        prompts.append(prompt)
+        selectedPromptID = prompt.id
+    }
+
+    func removeSelectedPrompt() {
+        guard prompts.count > 1 else { return }
+        let removedIndex = selectedPromptIndex
+        prompts.remove(at: removedIndex)
+        selectedPromptID = prompts[min(removedIndex, prompts.count - 1)].id
+    }
+
+    func renameSelectedPrompt(to name: String) {
+        prompts[selectedPromptIndex].name = name
+    }
+
+    func containsPrompt(named name: String, excluding id: Prompt.ID? = nil) -> Bool {
+        prompts.contains {
+            $0.id != id && $0.name.caseInsensitiveCompare(name) == .orderedSame
         }
     }
 
     private func loadOpenAIKey() {
-        isLoadingOpenAIKey = true
-        defer { isLoadingOpenAIKey = false }
+        isLoadingAPIKey = true
+        defer { isLoadingAPIKey = false }
 
-        let legacyKey = UserDefaults.standard.string(forKey: openAIKeyKeychainKey) ?? ""
+        let legacyKey = defaults.string(forKey: Key.openAIKey) ?? ""
         if !legacyKey.isEmpty {
-            openaiKey = legacyKey
-            UserDefaults.standard.removeObject(forKey: openAIKeyKeychainKey)
-            persistOpenAIKey(legacyKey)
+            openAIKey = legacyKey
+            defaults.removeObject(forKey: Key.openAIKey)
+            persistOpenAIKey()
             return
         }
 
         do {
-            openaiKey = try keychain.get(openAIKeyKeychainKey) ?? ""
+            openAIKey = try keychain.get(Key.openAIKey) ?? ""
         } catch {
-            log("Failed to load OpenAI API key from Keychain: \(error.localizedDescription)", type: .error)
-            openaiKey = ""
+            log("Failed to load the OpenAI API key: \(error.localizedDescription)", type: .error)
         }
     }
 
-    private func persistOpenAIKey(_ value: String) {
+    private func persistOpenAIKey() {
+        guard !isLoadingAPIKey else { return }
         do {
-            if value.isEmpty {
-                try keychain.delete(openAIKeyKeychainKey)
+            if openAIKey.isEmpty {
+                try keychain.delete(Key.openAIKey)
             } else {
-                try keychain.set(value, for: openAIKeyKeychainKey)
+                try keychain.set(openAIKey, for: Key.openAIKey)
             }
         } catch {
-            log("Failed to persist OpenAI API key to Keychain: \(error.localizedDescription)", type: .error)
-        }
-    }
-
-    private func loadPrompts() {
-        if promptsData.isEmpty { return }
-        do {
-            let decoded = try JSONDecoder().decode([String].self, from: promptsData)
-            self.prompts = decoded
-        } catch {
-            log("Failed to decode prompts: \(error.localizedDescription)", type: .error)
-            self.prompts = []
+            log("Failed to save the OpenAI API key: \(error.localizedDescription)", type: .error)
         }
     }
 
     private func persistPrompts() {
         do {
-            promptsData = try JSONEncoder().encode(prompts)
+            defaults.set(try JSONEncoder().encode(prompts), forKey: Key.prompts)
         } catch {
-            log("Failed to encode prompts: \(error.localizedDescription)", type: .error)
+            log("Failed to save prompts: \(error.localizedDescription)", type: .error)
         }
     }
 
-    private func loadPromptNames() {
-        if promptNamesData.isEmpty {
-            promptNames = []
-            return
+    private static func loadPrompts(from defaults: UserDefaults) -> [Prompt] {
+        if let data = defaults.data(forKey: Key.prompts),
+           let prompts = try? JSONDecoder().decode([Prompt].self, from: data) {
+            return prompts
         }
-        do {
-            let decoded = try JSONDecoder().decode([String].self, from: promptNamesData)
-            self.promptNames = decoded
-        } catch {
-            log("Failed to decode prompt names: \(error.localizedDescription)", type: .error)
-            self.promptNames = []
-        }
-    }
 
-    private func persistPromptNames() {
-        do {
-            promptNamesData = try JSONEncoder().encode(promptNames)
-        } catch {
-            log("Failed to encode prompt names: \(error.localizedDescription)", type: .error)
+        guard let promptData = defaults.data(forKey: Key.legacyPrompts),
+              let contents = try? JSONDecoder().decode([String].self, from: promptData) else {
+            return []
+        }
+        let names = defaults.data(forKey: Key.legacyPromptNames)
+            .flatMap { try? JSONDecoder().decode([String].self, from: $0) } ?? []
+        return contents.enumerated().map { index, content in
+            Prompt(
+                name: names.indices.contains(index) ? names[index] : "Prompt \(index + 1)",
+                content: content
+            )
         }
     }
 
-    func selectPrompt(at index: Int) {
-        guard prompts.indices.contains(index) else { return }
-        currentPromptIndex = index
-        improvementPrompt = prompts[index]
-        objectWillChange.send()
-    }
-
-    func addPrompt(named name: String, withContent content: String) {
-        prompts.append(content)
-        promptNames.append(name.isEmpty ? "untitled" : name)
-        currentPromptIndex = prompts.count - 1
-        improvementPrompt = content
-    }
-
-    func removeCurrentPrompt() {
-        guard prompts.count > 1, prompts.indices.contains(currentPromptIndex) else { return }
-        prompts.remove(at: currentPromptIndex)
-        promptNames.remove(at: currentPromptIndex)
-        // Adjust index
-        if currentPromptIndex >= prompts.count { currentPromptIndex = max(0, prompts.count - 1) }
-        improvementPrompt = prompts[currentPromptIndex]
-    }
-
-    func renameCurrentPrompt(to newName: String) {
-        guard prompts.indices.contains(currentPromptIndex) else { return }
-        if !newName.isEmpty {
-            promptNames[currentPromptIndex] = newName
-        }
+    private enum Key {
+        static let openAIKey = "openaiKey"
+        static let openAIBaseURL = "openaiBaseURL"
+        static let aiBackend = "aiBackend"
+        static let ollamaURL = "ollamaURL"
+        static let selectedModel = "selectedModel"
+        static let prompts = "prompts.v2"
+        static let selectedPromptID = "selectedPromptID"
+        static let legacyPrompts = "promptsData"
+        static let legacyPromptNames = "promptNamesData"
     }
 }
