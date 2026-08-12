@@ -68,8 +68,36 @@ class AppState: ObservableObject {
         log("Setting up hotkey (⌃⌥⌘C)")
         hotkeyManager = HotkeyManager { [weak self] in
             log("Hotkey triggered")
-            Task { [weak self] in
-                await self?.improveSelectedText()
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                // Run preflight and improvement entirely asynchronously to avoid blocking the main thread
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    do {
+                        _ = try await self.clipboardManager.getSelectedText()
+                        await self.improveSelectedText()
+                    } catch let error as ClipboardManager.ClipboardError {
+                        await MainActor.run {
+                            let warn = NSAlert()
+                            warn.messageText = "Nessun testo selezionato"
+                            warn.informativeText = error.localizedDescription
+                            warn.alertStyle = .warning
+                            warn.addButton(withTitle: "OK")
+                            NSApp.activate(ignoringOtherApps: true)
+                            warn.runModal()
+                        }
+                    } catch {
+                        await MainActor.run {
+                            let warn = NSAlert()
+                            warn.messageText = "Errore inatteso"
+                            warn.informativeText = "Si è verificato un errore durante la lettura del testo selezionato. Riprova."
+                            warn.alertStyle = .warning
+                            warn.addButton(withTitle: "OK")
+                            NSApp.activate(ignoringOtherApps: true)
+                            warn.runModal()
+                        }
+                    }
+                }
             }
         }
     }
@@ -239,3 +267,4 @@ struct MenuContentView: View {
         }
     }
 }
+
