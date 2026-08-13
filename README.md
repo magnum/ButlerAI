@@ -1,166 +1,78 @@
-<div align="center">
+# HigginsAI
 
-```
-__________        __  .__                  _____  .___ 
-\______   \__ ___/  |_|  |   ___________  /  _  \ |   |
- |    |  _/  |  \   __\  | _/ __ \_  __ \/  /_\  \|   |
- |    |   \  |  /|  | |  |_\  ___/|  | \/    |    \   |
- |______  /____/ |__| |____/\___  >__|  \____|__  /___|
-        \/                      \/              \/      
-```
+> Inspired by [ButlerAI](https://github.com/gscalzo/ButlerAI) by Giordano Scalzo — this project started from that repository and evolved into HigginsAI.
 
-<img src="appstore.png" width="128" height="128" style="border-radius: 20%; box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
+HigginsAI is a macOS menubar app that improves selected text with AI. Select text in any app, press a shortcut, pick a prompt, and the improved version is pasted back in place.
 
-### _Elevate Your Writing with AI Precision_ ✨
+## Features
 
-</div>
+- **Global shortcut** — `⌃⌥⌘C` works system-wide from the menubar (no Dock icon)
+- **Prompt picker on demand** — choose which prompt to apply when the hotkey fires
+- **OpenAI or Ollama** — cloud API or fully local models
+- **Custom prompts** — named prompt library; each prompt must include `{selection}`
+- **Clipboard-safe** — previous pasteboard contents are restored after replace
+- **Secure API key storage** — OpenAI key kept in the macOS Keychain
+- **Accessibility-aware** — Carbon hotkey registers without Accessibility; permission is requested only when simulating ⌘C / ⌘V
+- **In-app logs** — searchable log window for debugging requests and errors
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#examples">Examples</a> •
-  <a href="#support--feedback">Support</a>
-</p>
+## Requirements
 
-# HigginsAI - Your Text Enhancement Assistant 🎩
+- macOS 15.2 or later
+- Xcode 16.2+ (for building from source)
+- Either:
+  - an OpenAI API key, or
+  - [Ollama](https://ollama.ai/download) running locally
 
-HigginsAI is an elegant macOS menubar application that helps you improve your writing with the power of AI. Just select any text, press a shortcut, and watch as your text is refined and enhanced.
+## Setup
 
-## Features 🌟
+1. Launch HigginsAI (wand icon in the menubar)
+2. Open **Settings…**
+3. Choose a backend:
+   - **OpenAI** — paste your API key (optional custom base URL; default model `gpt-4o-mini`)
+   - **Ollama** — set the server URL (default `http://localhost:11434`) and refresh the model list
+4. Grant **Accessibility** when prompted (needed to read/replace the selection)
 
-- **Global Keyboard Shortcut** (⌃⌥⌘C) - Improve text anywhere, in any application
-- **AI-Powered Enhancement** - Choose between OpenAI's API or local Ollama models for intelligent text improvements
-- **Seamless Integration** - Lives in your menubar for quick access
-- **Original Context Preservation** - Maintains the original meaning and tone while improving clarity
-- **Clipboard Protection** - Preserves your clipboard content during operations
+## Usage
 
-## Installation 🚀
+1. Select text in any application
+2. Press `⌃⌥⌘C`
+3. Pick a prompt from the popup menu
+4. HigginsAI copies the selection, sends it to the AI backend, and pastes the result
 
-1. Download HigginsAI.dmg from the [Releases page](../../releases/latest)
-2. Open the DMG file
-3. Drag HigginsAI.app to your Applications folder
-4. Launch HigginsAI from Applications
-5. Configure your OpenAI API key in settings
+### Prompt format
 
-## Setup ⚙️
+Prompts must include the `{selection}` placeholder. Example:
 
-1. **First Launch**:
-   - Click the wand icon (✨) in your menubar
-   - Open Settings
-   - Choose your preferred AI backend:
+```text
+Improve the following text. Keep meaning and language. Return only the result.
 
-     **OpenAI Setup**:
-     - Enter your OpenAI API key
-     - Select a model (default: gpt-4o-mini)
-
-     **Ollama Setup**:
-     - [Install Ollama](https://ollama.ai/download)
-     - Select Ollama as your backend
-     - Configure Ollama server URL (default: http://localhost:11434)
-     - Choose from available local models
-
-2. **Required Permissions**:
-   - Grant Accessibility permissions when prompted
-   - These are needed for the keyboard shortcut functionality
-
-## Usage 📝
-
-1. Select any text in any application
-2. Press ⌃⌥⌘C (Control + Option + Command + C)
-3. Watch as your text is magically improved!
-
-## Examples 🎯
-
-Regular text improvement:
-```
-i think that this sentence could use some work because its not very good written
-```
-↓
-```
-I believe this sentence could be improved as it contains several grammatical errors and lacks clarity.
+Text:
+{selection}
 ```
 
-AI instruction improvement:
+## Privacy
+
+- With **Ollama**, text stays on your machine
+- With **OpenAI**, text is sent to the configured API endpoint
+- Nothing is stored permanently by the app beyond your settings and Keychain secrets
+- Clipboard content is snapshotted and restored after each run
+
+## Development
+
+```bash
+make build       # Build the app
+make test        # Run unit tests
+make test-build  # Compile tests only
+make archive     # Create an archive
+make clean       # Remove DerivedData / build artifacts
 ```
-tell me a story about a dragon that lives in SF and works as a software engineer
-```
-↓
-```
-Please write a story about a dragon residing in San Francisco who works as a software engineer.
-```
 
-## Error Messages 🔍
+Open `Higgins.xcodeproj` in Xcode for interactive work. Agent-oriented project notes live in [`AGENTS.md`](AGENTS.md).
 
-HigginsAI provides clear feedback when something goes wrong:
-- Missing API key notifications
-- No text selected warnings
-- Network connectivity issues
-- API error details
+### Release tags
 
-## Requirements 📋
+Pushing a `v*` tag runs the GitHub Action that builds, signs, notarizes, and publishes a DMG (requires the repo signing secrets).
 
-- macOS 12.0 or later
-- One of the following:
-  - OpenAI API key (for OpenAI backend)
-  - Ollama installation (for local AI backend)
-- Internet connection (for OpenAI backend only)
+## License
 
-## Privacy & Security 🔒
-
-- Text processing can happen either:
-  - Through OpenAI's secure API
-  - Locally using Ollama (complete privacy, no data leaves your machine)
-- No data is stored permanently
-- Your clipboard content is preserved
-- API key is stored securely in macOS keychain
-
-## Development 🛠️
-
-Built with:
-- SwiftUI
-- AppKit Integration
-- OpenAI API / Ollama Integration
-- Secure Networking
-- Xcode 16.2.0 (required for builds)
-
-### Building Releases
-
-Releases are automatically built and signed when pushing version tags:
-
-1. **Required Secrets**:
-   - `CERTIFICATE_BASE64`: Developer ID Application certificate
-   - `CERTIFICATE_PASSWORD`: Certificate export password
-   - `APPLE_DEVELOPER_ID`: Apple ID email
-   - `APPLE_DEVELOPER_PASSWORD`: App-specific password
-   - `TEAM_ID`: Apple Developer Team ID
-
-2. **Creating a Release**:
-   ```bash
-   git tag v1.0.0  # Use appropriate version
-   git push origin v1.0.0
-   ```
-
-The GitHub Action will automatically:
-- Build the app
-- Sign with Developer ID
-- Create notarized DMG
-- Create GitHub release
-
-## License 📄
-
-MIT License - See LICENSE file for details
-
-## Support & Feedback 💭
-
-Found a bug or have a feature request? Please open an issue!
-
----
-
-<div align="center">
-
-<img src="appstore.png" width="64" height="64" style="border-radius: 16px; margin: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-
-_Made with ❤️ by Cline and an amazed human_ ✨
-
-</div>
+MIT — see [LICENSE](LICENSE).

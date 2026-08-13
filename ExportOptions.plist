@@ -5,10 +5,10 @@
     <key>method</key>
     <string>developer-id</string>
     <key>teamID</key>
-    <string>4X6PHGF7Z3</string>
+    <string>H82AJFZ9LV</string>
     <key>signingStyle</key>
     <string>manual</string>
     <key>signingCertificate</key>
-    <string>Developer ID Application: Effective Code, Ltd</string>
+    <string>Developer ID Application</string>
 </dict>
 </plist>

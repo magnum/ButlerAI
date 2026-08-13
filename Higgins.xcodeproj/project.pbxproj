@@ -528,7 +528,7 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.HigginsTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.m6i.higgins.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -556,7 +556,7 @@
 					"-framework",
 					AppIntents,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = uk.co.effectivecode.HigginsTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.m6i.higgins.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;

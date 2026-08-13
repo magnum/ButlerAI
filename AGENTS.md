@@ -1,124 +1,118 @@
 # HigginsAI Agent Notes
 
 ## Product Overview
-HigginsAI is a macOS menubar app that improves selected text using AI. It runs without a dock icon, listens for a global hotkey (⌃⌥⌘C), copies the current selection, sends it to an AI backend (OpenAI or local Ollama), then pastes the improved text back while preserving clipboard contents.
+HigginsAI is a macOS menubar app (no Dock icon) that improves selected text with AI. Hotkey `⌃⌥⌘C` opens a prompt picker, copies the selection, sends it to OpenAI or local Ollama, then pastes the result while restoring the previous clipboard.
+
+Origin: evolved from an earlier ButlerAI-inspired codebase into the current HigginsAI architecture (prompt library, Carbon hotkey, Keychain, clearer AI transport). See README for upstream attribution.
 
 ## High-Level Architecture
-- **UI shell:** SwiftUI `MenuBarExtra` with settings and logs windows.
-- **State orchestration:** `AppState` coordinates services, processing state, errors, and window lifecycle.
-- **Services layer:** Hotkey handling, clipboard operations, AI requests, language handling, logging.
-- **Settings persistence:** `@AppStorage` in `SettingsService` for backend selection and configuration.
+- **UI shell:** SwiftUI `MenuBarExtra` + Settings scene + Logs window
+- **State:** `@Observable` `AppState` owns the improve-text flow
+- **Prompt UX:** `PromptMenuController` presents an `NSMenu` at the cursor when the hotkey fires
+- **Services:** hotkey, accessibility, clipboard, AI clients, settings, logging
+- **Persistence:** `SettingsService` uses `UserDefaults` + Keychain (not `@AppStorage`)
+
+## Current Features (evolution)
+- Carbon global hotkey (fires without Accessibility)
+- Accessibility requested only when simulating ⌘C / ⌘V
+- Multi-prompt library with `{selection}` placeholder validation
+- Prompt picker at hotkey time (not only in Settings)
+- Separate OpenAI base URL (no longer piggybacked on Ollama URL)
+- Shared AI transport / error mapping; refusal detection
+- OpenAI API key in Keychain (migrates legacy UserDefaults key)
+- In-memory logs UI (search, filter, copy, clear)
+- Unit tests via `make test` (UI tests removed)
 
 ## Key Components
-- `Higgins/HigginsApp.swift`
-  - `AppState` owns `HotkeyManager`, `ClipboardManager`, `OpenAIService`, `LanguageService`, `SettingsService`.
-  - Handles menu bar UI, settings window, log window, and end-to-end “improve text” flow.
-  - Uses `MenuBarExtra` with animated icon during processing.
-
-- `Higgins/Services/HotkeyManager.swift`
-  - Watches accessibility permission with a 2s timer.
-  - Uses a global keyboard monitor to detect ⌃⌥⌘C.
-  - Shows a permission prompt and opens System Settings when needed.
-
-- `Higgins/Services/ClipboardManager.swift`
-  - Simulates **Cmd+C** to capture selection and **Cmd+V** to paste.
-  - Preserves and restores previous clipboard contents.
-  - Uses `CGEvent` and short sleeps to allow pasteboard updates.
-
-- `Higgins/Services/OpenAIService.swift`
-  - Supports **OpenAI** and **Ollama** backends.
-  - OpenAI endpoint: `.../v1/chat/completions` (supports custom base URL).
-  - Ollama endpoint: `.../api/chat`; models list: `.../api/tags`.
-  - Sends a system prompt + user content message array.
-
-- `Higgins/Services/LanguageService.swift`
-  - Detects Italian text using `NaturalLanguage`.
-  - If Italian, asks the AI to translate and improve; otherwise improves directly.
-
-- `Higgins/Services/LoggerService.swift` + `Higgins/Views/LogView.swift`
-  - In-memory structured logs with type (info/warning/error).
-  - Log window supports search, filtering, auto-scroll, copy, clear.
-
-- `Higgins/Views/SettingsView.swift`
-  - Backend switcher (OpenAI vs Ollama).
-  - OpenAI key input; Ollama URL + model picker with refresh.
-  - Improvement prompt editor.
-
-- `Higgins/Models/AIConfiguration.swift`
-  - `AIBackendType` enum.
-  - Default model constant: `gpt-4o-mini`.
+- `Higgins/HigginsApp.swift` — `@main`, `AppState`, `PromptMenuController`, menubar UI
+- `Higgins/Services/HotkeyManager.swift` — Carbon `⌃⌥⌘C`
+- `Higgins/Services/ClipboardManager.swift` — capture/replace + `PasteboardSnapshot`
+- `Higgins/Services/TextImproving.swift` — protocol, prompt rendering, `AITransport`, `AIServiceError`
+- `Higgins/Services/OpenAIService.swift` — `OpenAIClient` (filename is legacy)
+- `Higgins/Services/OllamaClient.swift` — chat + `/api/tags` model list
+- `Higgins/Services/SettingsService.swift` — backend, models, prompts, Keychain key
+- `Higgins/Services/KeychainService.swift` — generic-password helpers
+- `Higgins/Services/LoggerService.swift` + `Views/LogView.swift`
+- `Higgins/Views/SettingsView.swift` — backend / prompts / shortcut
+- `Higgins/Models/AIConfiguration.swift` — `AIBackendType`, defaults
+- `Higgins/Services/LanguageService.swift` — reserved stub (no language path today)
+- `Higgins/AppIntentsSupport.swift` — unused stub
 
 ## Data Flow (Runtime)
-1. User presses ⌃⌥⌘C.
-2. `HotkeyManager` triggers `AppState.improveSelectedText()`.
-3. `ClipboardManager` captures selection via Cmd+C.
-4. `LanguageService` optionally translates Italian and calls `OpenAIService`.
-5. Improved text returned to `ClipboardManager` for Cmd+V paste.
-6. Previous clipboard contents are restored.
+1. User presses `⌃⌥⌘C`
+2. `HotkeyManager` → `AppState.handleHotkey()`
+3. Accessibility check (guidance + System Settings if missing)
+4. `PromptMenuController` lets the user pick a prompt
+5. Frontmost app is reactivated; short delay
+6. `ClipboardManager.getSelectedText()` (snapshot → ⌘C)
+7. `OpenAIClient` / `OllamaClient` improve via rendered prompt (`{selection}`)
+8. `ClipboardManager.replaceSelectedText` (⌘V) then restore prior pasteboard
+9. Errors surface via `NSAlert` (config issues can open Settings)
 
 ## Settings & Persistence
-`SettingsService` stores:
-- `openaiKey`
-- `aiBackend` (OpenAI / Ollama)
-- `ollamaURL` (also reused as a custom OpenAI base URL when backend is OpenAI and URL is non-default)
-- `selectedModel`
-- `improvementPrompt`
+UserDefaults keys (see `SettingsService.Key`):
+- `openaiBaseURL`, `aiBackend`, `ollamaURL`, `selectedModel`
+- `prompts.v2` (JSON `[Prompt]`), `selectedPromptID`
+- Legacy migration from `promptsData` / `promptNamesData`
+
+Keychain:
+- Account `openaiKey` (service = bundle id / `HigginsAI`)
+
+Defaults:
+- Backend OpenAI, base URL `https://api.openai.com/v1`
+- Ollama `http://localhost:11434`
+- Model `gpt-4o-mini`
+- One “Default” prompt containing `{selection}`
 
 ## Permissions & OS Integration
-- Requires **Accessibility** permissions for global key monitoring and clipboard events.
-- Uses `AXIsProcessTrustedWithOptions` for prompting and `NSEvent.addGlobalMonitorForEvents` for hotkey capture.
-
-## Observed Quirks / Implementation Notes
-- `ClipboardManager` still uses `print()` for logging, while other areas use `LoggerService`.
-- OpenAI base URL customization piggybacks on `ollamaURL` when backend is OpenAI and URL differs from `http://localhost:11434`.
-- AI request uses a chat payload with `system` and `user` messages and a fixed `temperature: 0.7`.
+- Accessibility required for synthetic ⌘C / ⌘V
+- Hotkey registration does **not** require Accessibility
+- App is `LSUIElement` (menubar-only)
+- Deployment target: **macOS 15.2**
+- Bundle id: `com.m6i.higgins`
 
 ## Build & Test
-- Open `Higgins.xcodeproj` in Xcode (macOS 12+).
-- Tests live in `HigginsTests` (UI tests removed).
+- Open `Higgins.xcodeproj` in Xcode 16.2+
+- Makefile:
+  - `make test` — unit tests (`HigginsTests`), optional `xcsift`, prints `tests_run`
+  - `make test-build` / `make build` / `make archive` / `make clean`
+- Local make targets disable code signing
 
 ## Common Entry Points
-- App: `Higgins/HigginsApp.swift`
-- AI: `Higgins/Services/OpenAIService.swift`
-- Settings: `Higgins/Views/SettingsView.swift`
+- App / state: `Higgins/HigginsApp.swift`
+- AI: `Higgins/Services/TextImproving.swift`, `OpenAIService.swift`, `OllamaClient.swift`
+- Settings UI: `Higgins/Views/SettingsView.swift`
 - Clipboard: `Higgins/Services/ClipboardManager.swift`
 - Hotkey: `Higgins/Services/HotkeyManager.swift`
-- Logs UI: `Higgins/Views/LogView.swift`
+- Logs: `Higgins/Views/LogView.swift`
 
 # unit tests
 Use XCTest for unit tests.
 Implement unit tests to ensure that the code works as intended.
 Run the tests before making any changes, add tests to verify the changes, and ensure that the tests pass before considering the session complete.
 
-# xcodebuild 
-To save context, use the tool xcsift to format the output of xcodebuild or Swift. 
-Here is the help:
-OVERVIEW: A Swift tool to parse and format xcodebuild output for coding agents
-xcsift reads xcodebuild output from stdin and outputs structured JSON.
-Important: Always use 2>&1 to redirect stderr to stdout. This ensures all
-compiler errors, warnings, and build output are captured.
+# xcodebuild
+To save context, use `xcsift` when available to format xcodebuild/Swift output.
+Always redirect stderr: `… 2>&1 | xcsift -w`
 Examples:
+```
 xcodebuild build 2>&1 | xcsift -w
 xcodebuild test 2>&1 | xcsift -w
-swift build 2>&1 | xcsift -w
-swift test 2>&1 | xcsift -w
+```
+The Makefile falls back to `cat` if `xcsift` is not installed.
 
 # Structure hygiene
 Fix all errors, warnings, and failed tests, even if they are not related to the current changes being made.
 
-# grep or search text 
-You are operating in an environment where ast-grep is installed. For any code search that requires understanding of syntax or code structure, you should default to using ast-grep --lang [language] -p '<pattern>'. Adjust the --lang flag as needed for the specific programming language. Avoid using text-only search tools unless a plain-text search is explicitly requested.
+# grep or search text
+Prefer `ast-grep --lang [language] -p '<pattern>'` for structural code search. Use text search only when explicitly needed for plain-text matching.
 
 # tests scope
 UI tests have been removed; unit tests are run via `make test`.
 
 # Makefile
-Use `Makefile` targets for common tasks:
-- `make test` (unit tests only, executes tests)
-- `make test-build` (build-for-testing only)
+- `make test` — run unit tests
+- `make test-build` — build-for-testing only
 - `make build`
 - `make archive`
 - `make clean`
-
-# test command
-Use `make test` to execute unit tests (includes xcsift formatting and validates that the log includes the test count; prints `tests_run`).
