@@ -42,20 +42,7 @@ final class OllamaClient: TextImproving {
     }
 
     func improveText(_ text: String) async throws -> String {
-        guard let baseURL else {
-            throw AIServiceError.invalidURL(serverURL)
-        }
-
-        var request = URLRequest(url: Self.chatEndpoint(baseURL: baseURL))
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(
-            OllamaRequest(
-                model: model,
-                prompt: TextImprovementInstructions.systemPrompt(customPrompt: prompt),
-                text: text
-            )
-        )
+        let request = try makeRequest(for: text)
 
         log("Sending Ollama request with model \(model)")
         let response = try await AITransport.send(request, as: OllamaResponse.self, session: session)
@@ -67,6 +54,29 @@ final class OllamaClient: TextImproving {
             throw AIServiceError.refusal(content)
         }
         return content
+    }
+
+    func makeRequest(for text: String) throws -> URLRequest {
+        guard let baseURL else {
+            throw AIServiceError.invalidURL(serverURL)
+        }
+
+        let renderedPrompt = try TextImprovementInstructions.render(
+            customPrompt: prompt,
+            selection: text
+        )
+
+        var request = URLRequest(url: Self.chatEndpoint(baseURL: baseURL))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            OllamaRequest(
+                model: model,
+                prompt: TextImprovementInstructions.systemPrompt,
+                text: renderedPrompt
+            )
+        )
+        return request
     }
 }
 

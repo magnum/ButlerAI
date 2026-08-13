@@ -67,3 +67,36 @@ final class SettingsServiceTests: XCTestCase {
         )
     }
 }
+
+@MainActor
+final class PromptMenuControllerTests: XCTestCase {
+    func testMenuMarksAndPositionsTheSelectedPrompt() throws {
+        let firstPrompt = SettingsService.Prompt(name: "Improve", content: "Improve")
+        let selectedPrompt = SettingsService.Prompt(name: "Formal", content: "Formal")
+        let controller = PromptMenuController()
+
+        let presentation = controller.makeMenu(
+            prompts: [firstPrompt, selectedPrompt],
+            selectedPromptID: selectedPrompt.id
+        )
+
+        XCTAssertEqual(presentation.menu.items.map(\.title), ["Improve", "Formal"])
+        XCTAssertEqual(presentation.menu.items[0].state, .off)
+        XCTAssertEqual(presentation.menu.items[1].state, .on)
+        XCTAssertIdentical(presentation.selectedItem, presentation.menu.items[1])
+    }
+
+    func testActivatingMenuItemReturnsItsPromptID() {
+        let firstPrompt = SettingsService.Prompt(name: "Improve", content: "Improve")
+        let secondPrompt = SettingsService.Prompt(name: "Formal", content: "Formal")
+        let controller = PromptMenuController()
+        let presentation = controller.makeMenu(
+            prompts: [firstPrompt, secondPrompt],
+            selectedPromptID: firstPrompt.id
+        )
+
+        presentation.menu.performActionForItem(at: 1)
+
+        XCTAssertEqual(controller.selectedPromptID, secondPrompt.id)
+    }
+}

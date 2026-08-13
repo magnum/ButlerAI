@@ -10,7 +10,10 @@ struct SettingsView: View {
             ShortcutSettingsSection()
         }
         .formStyle(.grouped)
-        .frame(width: 440)
+        .frame(
+            width: 440,
+            height: settings.aiBackend == .ollama ? 700 : 640
+        )
     }
 }
 
@@ -95,22 +98,31 @@ private struct PromptSettingsSection: View {
                     }
                 }
 
-                Button("Rename Prompt", systemImage: "pencil") {
+                Button {
                     editor = .rename
+                } label: {
+                    Image(systemName: "pencil")
+                        .frame(width: 14, height: 14)
                 }
-                .labelStyle(.iconOnly)
+                .buttonStyle(.bordered)
                 .help("Rename selected prompt")
 
-                Button("Add Prompt", systemImage: "plus") {
+                Button {
                     editor = .add
+                } label: {
+                    Image(systemName: "plus")
+                        .frame(width: 14, height: 14)
                 }
-                .labelStyle(.iconOnly)
+                .buttonStyle(.bordered)
                 .help("Add prompt")
 
-                Button("Delete Prompt", systemImage: "minus", role: .destructive) {
+                Button(role: .destructive) {
                     showsDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "minus")
+                        .frame(width: 14, height: 14)
                 }
-                .labelStyle(.iconOnly)
+                .buttonStyle(.bordered)
                 .help("Delete selected prompt")
                 .disabled(settings.prompts.count == 1)
             }
@@ -125,6 +137,10 @@ private struct PromptSettingsSection: View {
                     RoundedRectangle(cornerRadius: 6)
                         .stroke(.separator, lineWidth: 1)
                 }
+
+            Text("use {selection} as selected text placeholder")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .sheet(item: $editor) { editor in
             PromptNameEditor(

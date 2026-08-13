@@ -7,6 +7,7 @@ import SwiftUI
 final class AppState {
     private var hotkeyManager: HotkeyManager?
     private let clipboardManager = ClipboardManager()
+    private let promptMenuController = PromptMenuController()
 
     let settings = SettingsService()
     private(set) var isProcessing = false
@@ -35,8 +36,20 @@ final class AppState {
     private func handleHotkey() {
         guard !isProcessing else { return }
         guard requestAccessibilityPermission(showGuidance: true) else { return }
+        let sourceApplication = NSWorkspace.shared.frontmostApplication
 
+        guard let promptID = promptMenuController.present(
+            prompts: settings.prompts,
+            selectedPromptID: settings.selectedPromptID,
+            at: NSEvent.mouseLocation
+        ) else {
+            return
+        }
+
+        settings.selectPrompt(id: promptID)
+        sourceApplication?.activate()
         Task {
+            try? await Task.sleep(for: .milliseconds(100))
             await improveSelectedText()
         }
     }
@@ -149,6 +162,74 @@ final class AppState {
         } else if !offersSettings {
             alert.runModal()
         }
+    }
+}
+
+@MainActor
+final class PromptMenuController: NSObject {
+    private(set) var selectedPromptID: SettingsService.Prompt.ID?
+
+    func present(
+        prompts: [SettingsService.Prompt],
+        selectedPromptID: SettingsService.Prompt.ID,
+        at screenLocation: NSPoint
+    ) -> SettingsService.Prompt.ID? {
+        let presentation = makeMenu(
+            prompts: prompts,
+            selectedPromptID: selectedPromptID
+        )
+        self.selectedPromptID = nil
+
+        // Offset the popup below the mouse so the cursor lands on the disabled header
+        let headerOffset: CGFloat = 28
+        let adjustedPoint = NSPoint(x: screenLocation.x, y: screenLocation.y - headerOffset)
+
+        presentation.menu.popUp(
+            positioning: presentation.selectedItem,
+            at: adjustedPoint,
+            in: nil
+        )
+        return self.selectedPromptID
+    }
+
+    func makeMenu(
+        prompts: [SettingsService.Prompt],
+        selectedPromptID: SettingsService.Prompt.ID
+    ) -> (menu: NSMenu, selectedItem: NSMenuItem?) {
+        let menu = NSMenu(title: "Prompts")
+        menu.autoenablesItems = false
+
+        // Add a non-selectable header to prevent initial mouse hover from stealing focus
+        let headerItem = NSMenuItem()
+        headerItem.title = "Prompt:"
+        headerItem.isEnabled = false
+        menu.addItem(headerItem)
+        menu.addItem(.separator())
+
+        var selectedItem: NSMenuItem?
+
+        for prompt in prompts {
+            let item = NSMenuItem(
+                title: prompt.name,
+                action: #selector(selectPrompt(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = prompt.id.uuidString
+
+            if prompt.id == selectedPromptID {
+                item.state = .on
+                selectedItem = item
+            }
+            menu.addItem(item)
+        }
+
+        return (menu, selectedItem)
+    }
+
+    @objc func selectPrompt(_ sender: NSMenuItem) {
+        guard let rawID = sender.representedObject as? String else { return }
+        selectedPromptID = UUID(uuidString: rawID)
     }
 }
 
